@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-serif: var(--font-serif-lora), Georgia, serif;
+  --font-sans: var(--font-sans-inter), system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  --background: #fbfbf6; /* 米白色纸张感 */
+  --foreground: #1c1c1a; /* 墨黑色碳素墨水感 */
+  --border: #e4e4e1;     /* 纸张微凹线框色 */
+  --accent: #2e2e2b;     /* 克制的强调色 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #121212; /* 沉静黑板石色 */
+    --foreground: #e5e5e5; /* 柔和白粉笔色 */
+    --border: #2a2a2a;     /* 极深灰线框色 */
+    --accent: #d4d4d4;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* 极简无卡片布局下的细线分隔线规范 */
+.border-divider {
+  border-color: var(--border);
+}
+
+/* 自适应滚动条以契合纸张风格 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* 打印模式优化 */
+@media print {
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
