@@ -13,103 +13,95 @@ interface TableOfContentsProps {
   toc: VeliteTocItem[];
 }
 
+// 移动端 Header 高度 + 额外偏移
+const SCROLL_OFFSET = 72;
+
 export default function TableOfContents({ toc }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
   const { setIsMobileTOCOpen } = useUI();
 
-  // 将树状的 toc 拍平，并动态计算标题层级深度 (depth)
+  // 将树状 toc 拍平
   const flatToc = useMemo(() => {
     const result: { title: string; url: string; depth: number }[] = [];
-    const traverse = (list: VeliteTocItem[], currentDepth = 2) => {
+    const traverse = (list: VeliteTocItem[], depth = 2) => {
       list.forEach((item) => {
-        result.push({
-          title: item.title,
-          url: item.url,
-          depth: currentDepth,
-        });
-        if (item.items && item.items.length > 0) {
-          traverse(item.items, currentDepth + 1);
-        }
+        result.push({ title: item.title, url: item.url, depth });
+        if (item.items?.length) traverse(item.items, depth + 1);
       });
     };
     traverse(toc);
     return result;
   }, [toc]);
 
+  // IntersectionObserver 追踪当前可见标题
   useEffect(() => {
     if (flatToc.length === 0) return;
 
-    // 获取所有目录项对应的 DOM 元素
-    const elements = flatToc
-      .map((item) => document.getElementById(item.url.replace(/^#/, "")))
+    const ids = flatToc.map((item) => item.url.replace(/^#/, ""));
+    const elements = ids
+      .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // 找到当前在屏幕中可见且最靠上的标题
-        const visibleEntries = entries.filter((entry) => entry.isIntersecting);
-        if (visibleEntries.length > 0) {
-          visibleEntries.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-          setActiveId(`#${visibleEntries[0].target.id}`);
-        } else {
-          // 回退逻辑：如果滚动到了页面顶部，高亮第一个
-          if (window.scrollY < 100 && flatToc.length > 0) {
-            setActiveId(flatToc[0].url);
-          }
+    // 用 scroll 事件确定最近标题，比 IO 更可靠
+    const handleScroll = () => {
+      const threshold = window.scrollY + SCROLL_OFFSET + 8;
+      let current = flatToc[0]?.url ?? "";
+      for (const el of elements) {
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        if (top <= threshold) {
+          current = `#${el.id}`;
         }
-      },
-      {
-        rootMargin: "-80px 0px -60% 0px",
-        threshold: 0.1,
       }
-    );
-
-    elements.forEach((el) => observer.observe(el));
-
-    return () => {
-      elements.forEach((el) => observer.unobserve(el));
+      setActiveId(current);
     };
+
+    handleScroll(); // 初始执行
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [flatToc]);
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
     const id = url.replace(/^#/, "");
-    const element = document.getElementById(id);
-    if (element) {
-      setIsMobileTOCOpen(false); // 点击后关闭移动端抽屉
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById(id);
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+      window.scrollTo({ top, behavior: "smooth" });
       window.history.pushState(null, "", url);
       setActiveId(url);
+      setIsMobileTOCOpen(false);
     }
   };
 
-  if (flatToc.length === 0) {
-    return null;
-  }
+  if (flatToc.length === 0) return null;
 
   return (
     <div className="w-full flex flex-col py-4 select-none">
-      <h3 className="text-xs font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase px-2 mb-3">
+      <h3 className="text-[10px] font-bold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase px-2 mb-3">
         On This Page
       </h3>
-      <div className="flex flex-col gap-1.5 border-l border-zinc-200/60 dark:border-zinc-800/60">
+      <div className="flex flex-col gap-0.5 border-l border-zinc-200/60 dark:border-zinc-800/60">
         {flatToc.map((item) => {
           const isActive = activeId === item.url;
-          // 根据标题的深度做缩进排版 (H2=2 pl-3, H3=3 pl-5, H4=4 pl-8, etc.)
-          const plClass = item.depth === 3 ? "pl-5" : item.depth >= 4 ? "pl-8" : "pl-3";
+          const pl =
+            item.depth === 3
+              ? "pl-5"
+              : item.depth >= 4
+              ? "pl-8"
+              : "pl-3";
 
           return (
             <a
               key={item.url}
               href={item.url}
               onClick={(e) => handleLinkClick(e, item.url)}
-              className={`block -ml-px border-l text-sm py-1 pr-2 transition-colors focus:outline-none ${plClass} ${
+              className={`-ml-px border-l text-xs py-1 pr-2 transition-all duration-150 focus:outline-none ${pl} ${
                 isActive
-                  ? "border-zinc-950 font-medium text-zinc-950 dark:border-zinc-50 dark:text-zinc-50"
-                  : "border-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  ? "border-zinc-800 dark:border-zinc-200 font-semibold text-zinc-900 dark:text-zinc-50"
+                  : "border-transparent text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700"
               }`}
             >
-              <span className="truncate block leading-tight">{item.title}</span>
+              <span className="block truncate leading-snug">{item.title}</span>
             </a>
           );
         })}

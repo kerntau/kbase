@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 interface MobileDrawerProps {
@@ -11,7 +11,15 @@ interface MobileDrawerProps {
   children: React.ReactNode;
 }
 
-export default function MobileDrawer({ isOpen, onClose, title, side, children }: MobileDrawerProps) {
+export default function MobileDrawer({
+  isOpen,
+  onClose,
+  title,
+  side,
+  children,
+}: MobileDrawerProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
   // 禁止背景滚动
   useEffect(() => {
     if (isOpen) {
@@ -35,22 +43,22 @@ export default function MobileDrawer({ isOpen, onClose, title, side, children }:
 
   if (!isOpen) return null;
 
-  const sideClasses =
-    side === "left"
-      ? "left-0 translate-x-0 border-r"
-      : "right-0 translate-x-0 border-l";
+  const slideClass =
+    side === "left" ? "animate-slide-in-left" : "animate-slide-in-right";
+  const positionClass = side === "left" ? "left-0 border-r" : "right-0 border-l";
 
   return (
     <div className="fixed inset-0 z-50 flex no-print">
       {/* 遮罩层 */}
       <div
-        className="absolute inset-0 bg-zinc-950/20 backdrop-blur-[1px] transition-opacity duration-300 ease-out dark:bg-black/40"
+        className="absolute inset-0 bg-zinc-950/25 backdrop-blur-[1px] animate-fade-in-overlay dark:bg-black/50"
         onClick={onClose}
       />
 
       {/* 抽屉面板 */}
       <div
-        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-background border-divider flex flex-col p-5 shadow-xl transition-transform duration-300 ease-out ${sideClasses}`}
+        ref={panelRef}
+        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-background border-divider flex flex-col p-5 shadow-xl ${positionClass} ${slideClass}`}
       >
         {/* 头部区 */}
         <div className="flex items-center justify-between border-b border-divider pb-3 mb-2">
@@ -60,15 +68,14 @@ export default function MobileDrawer({ isOpen, onClose, title, side, children }:
           <button
             onClick={onClose}
             className="p-1 -mr-1 rounded-md text-zinc-400 hover:text-zinc-900 transition-colors focus:outline-none dark:text-zinc-500 dark:hover:text-zinc-100"
+            aria-label="Close"
           >
             <X size={16} />
           </button>
         </div>
 
         {/* 内容滚动区 */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
       </div>
     </div>
   );

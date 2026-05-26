@@ -8,17 +8,17 @@
 }
 
 :root {
-  --background: #fbfbf6; /* 米白色纸张感 */
-  --foreground: #1c1c1a; /* 墨黑色碳素墨水感 */
-  --border: #e4e4e1;     /* 纸张微凹线框色 */
-  --accent: #2e2e2b;     /* 克制的强调色 */
+  --background: #fbfbf6;
+  --foreground: #1c1c1a;
+  --border: #e4e4e1;
+  --accent: #2e2e2b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #121212; /* 沉静黑板石色 */
-    --foreground: #e5e5e5; /* 柔和白粉笔色 */
-    --border: #2a2a2a;     /* 极深灰线框色 */
+    --background: #121212;
+    --foreground: #e5e5e5;
+    --border: #2a2a2a;
     --accent: #d4d4d4;
   }
 }
@@ -30,34 +30,59 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-/* 极简无卡片布局下的细线分隔线规范 */
 .border-divider {
   border-color: var(--border);
 }
 
-/* 自适应滚动条以契合纸张风格 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ─── 滚动条 ─────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ─── Focus ring 全局规范 ─────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-/* 打印模式优化 */
+/* ─── 动画 ──────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-overlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fade-in          { animation: fade-in 0.22s ease-out both; }
+.animate-fade-in-overlay  { animation: fade-in-overlay 0.18s ease-out both; }
+.animate-slide-in-left    { animation: slide-in-left 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-slide-in-right   { animation: slide-in-right 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-scale-in         { animation: scale-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ─── 打印 ──────────────────────────────── */
 @media print {
-  body {
-    background: #ffffff;
-    color: #000000;
-  }
-  .no-print {
-    display: none !important;
-  }
+  body { background: #ffffff; color: #000000; }
+  .no-print { display: none !important; }
 }

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { VeliteTocItem } from "@/components/TableOfContents";
 
 interface UIContextType {
@@ -12,6 +18,7 @@ interface UIContextType {
   setIsSearchOpen: (open: boolean) => void;
   expandedNodes: Record<string, boolean>;
   toggleNode: (path: string) => void;
+  expandNode: (path: string) => void;
   currentToc: VeliteTocItem[];
   setCurrentToc: (toc: VeliteTocItem[]) => void;
 }
@@ -25,25 +32,35 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
   const [currentToc, setCurrentToc] = useState<VeliteTocItem[]>([]);
 
-  // 从 localStorage 恢复展开节点状态，以确保刷新或重新加载时状态得以保持
+  // 从 localStorage 恢复展开节点状态
   useEffect(() => {
     const saved = localStorage.getItem("kb_expanded_nodes");
     if (saved) {
       try {
         setExpandedNodes(JSON.parse(saved));
-      } catch (e) {
+      } catch {
         // 忽略解析错误
       }
     }
   }, []);
 
-  const toggleNode = (path: string) => {
+  const toggleNode = useCallback((path: string) => {
     setExpandedNodes((prev) => {
       const next = { ...prev, [path]: !prev[path] };
       localStorage.setItem("kb_expanded_nodes", JSON.stringify(next));
       return next;
     });
-  };
+  }, []);
+
+  // 幂等展开节点（仅展开，不会折叠已展开的节点）
+  const expandNode = useCallback((path: string) => {
+    setExpandedNodes((prev) => {
+      if (prev[path]) return prev; // 已展开，不做任何操作
+      const next = { ...prev, [path]: true };
+      localStorage.setItem("kb_expanded_nodes", JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   return (
     <UIContext
@@ -56,6 +73,7 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
         setIsSearchOpen,
         expandedNodes,
         toggleNode,
+        expandNode,
         currentToc,
         setCurrentToc,
       }}

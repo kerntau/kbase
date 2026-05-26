@@ -3,7 +3,13 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronRight, FileText, Folder, FolderOpen } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Folder,
+  FolderOpen,
+} from "lucide-react";
 import { useUI } from "@/context/UIContext";
 import { TreeNode } from "@/utils/tree";
 
@@ -11,33 +17,27 @@ interface SidebarProps {
   tree: TreeNode[];
 }
 
+// 规范化路径：统一去掉尾部斜杠，小写比较
+function normalizePath(p: string) {
+  return p.replace(/\/+$/, "").toLowerCase();
+}
+
 export default function Sidebar({ tree }: SidebarProps) {
   const pathname = usePathname();
-  const { expandedNodes, toggleNode, setIsMobileSidebarOpen } = useUI();
+  const { expandedNodes, toggleNode, expandNode, setIsMobileSidebarOpen } = useUI();
 
-  // 根据当前路径自动展开父级目录
+  // 当前路径变化时，自动展开所有祖先文件夹
   useEffect(() => {
-    // 找出匹配当前 pathname 的所有父级文件夹路径
-    const activePath = decodeURIComponent(pathname);
-    const expandParents = (nodes: TreeNode[], parentPaths: string[] = []): boolean => {
+    const active = normalizePath(decodeURIComponent(pathname));
+
+    const findAndExpand = (nodes: TreeNode[], ancestors: string[]): boolean => {
       for (const node of nodes) {
         if (node.isFolder) {
-          const matched = expandParents(node.children || [], [...parentPaths, node.path]);
-          if (matched) {
-            // 如果子孙节点匹配，我们需要确保当前目录及父目录都展开
-            parentPaths.forEach((p) => {
-              if (!expandedNodes[p]) {
-                toggleNode(p);
-              }
-            });
-            if (!expandedNodes[node.path]) {
-              toggleNode(node.path);
-            }
-            return true;
-          }
+          const found = findAndExpand(node.children || [], [...ancestors, node.path]);
+          if (found) return true;
         } else {
-          // 如果文件节点的 path 精确匹配当前路由
-          if (node.path === activePath || (node.path + "/").replace(/\/+$/, "/") === activePath.replace(/\/+$/, "/")) {
+          if (normalizePath(node.path) === active) {
+            ancestors.forEach((p) => expandNode(p));
             return true;
           }
         }
@@ -45,59 +45,72 @@ export default function Sidebar({ tree }: SidebarProps) {
       return false;
     };
 
-    expandParents(tree);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, tree]);
+    findAndExpand(tree, []);
+  }, [pathname, tree, expandNode]);
 
   const renderTree = (nodes: TreeNode[], depth = 0) => {
     return nodes.map((node) => {
       const isExpanded = !!expandedNodes[node.path];
-      const indentClass = depth > 0 ? { paddingLeft: `${depth * 12 + 8}px` } : { paddingLeft: "8px" };
+      const indent = { paddingLeft: `${depth * 14 + 8}px` };
+      const active = normalizePath(decodeURIComponent(pathname));
 
       if (node.isFolder) {
         return (
           <div key={node.path} className="flex flex-col">
             <button
               onClick={() => toggleNode(node.path)}
-              className="flex w-full items-center gap-2 py-1.5 pr-2 text-left text-sm text-zinc-600 transition-colors hover:text-zinc-900 focus:outline-none dark:text-zinc-400 dark:hover:text-zinc-100"
-              style={indentClass}
+              style={indent}
+              className="flex w-full items-center gap-2 py-1.5 pr-2 text-left text-sm rounded-sm
+                         text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/70
+                         dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/40
+                         transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 select-none"
+              aria-expanded={isExpanded}
             >
-              <span className="text-zinc-400 dark:text-zinc-500">
-                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              <span className="text-zinc-400 dark:text-zinc-500 shrink-0 transition-transform duration-200" style={{ transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>
+                <ChevronDown size={13} />
               </span>
-              <span className="text-zinc-400 dark:text-zinc-500">
-                {isExpanded ? <FolderOpen size={14} /> : <Folder size={14} />}
+              <span className="text-zinc-400 dark:text-zinc-500 shrink-0">
+                {isExpanded ? <FolderOpen size={13} /> : <Folder size={13} />}
               </span>
               <span className="font-medium tracking-tight truncate">{node.title}</span>
             </button>
 
-            {isExpanded && node.children && (
-              <div className="flex flex-col relative before:absolute before:left-3 before:top-0 before:bottom-0 before:w-px before:bg-zinc-200/60 dark:before:bg-zinc-800/60">
-                {renderTree(node.children, depth + 1)}
+            {/* 展开内容带高度过渡 */}
+            <div
+              className="overflow-hidden transition-all duration-200 ease-out"
+              style={{ maxHeight: isExpanded ? "9999px" : "0px", opacity: isExpanded ? 1 : 0 }}
+            >
+              <div className="flex flex-col relative before:absolute before:left-[14px] before:top-0 before:bottom-0 before:w-px before:bg-zinc-200/60 dark:before:bg-zinc-800/60">
+                {renderTree(node.children || [], depth + 1)}
               </div>
-            )}
+            </div>
           </div>
         );
       } else {
-        const activePath = decodeURIComponent(pathname);
-        const isActive = node.path === activePath || (node.path + "/").replace(/\/+$/, "/") === activePath.replace(/\/+$/, "/");
+        const isActive = normalizePath(node.path) === active;
 
         return (
           <Link
             key={node.path}
             href={node.path}
-            onClick={() => setIsMobileSidebarOpen(false)} // 点击文件后关闭移动端侧栏
-            className={`flex items-center gap-2 py-1.5 pr-2 text-sm transition-colors focus:outline-none ${
-              isActive
-                ? "font-semibold text-zinc-950 dark:text-zinc-50"
-                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            }`}
-            style={indentClass}
+            onClick={() => setIsMobileSidebarOpen(false)}
+            style={indent}
+            className={`flex items-center gap-2 py-1.5 pr-2 text-sm rounded-sm
+                        transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400
+                        ${
+                          isActive
+                            ? "font-semibold text-zinc-950 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800/60"
+                            : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/70 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/40"
+                        }`}
+            aria-current={isActive ? "page" : undefined}
           >
-            <span className={isActive ? "text-zinc-950 dark:text-zinc-50" : "text-zinc-400 dark:text-zinc-500"}>
-              <FileText size={14} />
+            <span className={`shrink-0 ${isActive ? "text-zinc-800 dark:text-zinc-200" : "text-zinc-400 dark:text-zinc-500"}`}>
+              <FileText size={13} />
             </span>
             <span className="truncate leading-tight">{node.title}</span>
+            {isActive && (
+              <span className="ml-auto w-1 h-1 rounded-full bg-zinc-800 dark:bg-zinc-200 shrink-0" />
+            )}
           </Link>
         );
       }
@@ -105,12 +118,14 @@ export default function Sidebar({ tree }: SidebarProps) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-1.5 py-4 select-none">
+    <nav className="w-full flex flex-col gap-0.5 py-4 select-none" aria-label="Document tree">
       {tree.length === 0 ? (
-        <p className="text-sm text-zinc-400 dark:text-zinc-600 px-2 italic">No documents found</p>
+        <p className="text-sm text-zinc-400 dark:text-zinc-600 px-2 italic">
+          No documents found
+        </p>
       ) : (
         renderTree(tree)
       )}
-    </div>
+    </nav>
   );
 }
