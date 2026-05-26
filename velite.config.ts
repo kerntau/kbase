@@ -23,7 +23,7 @@ export default defineConfig({
           content: s.markdown(), // 编译为 HTML
           toc: s.toc(), // 自动生成大纲
         })
-        .transform(data => ({ ...data, permalink: `/posts/${data.slug}` })),
+        .transform(data => ({ ...data, permalink: `/kb/posts/${data.slug}` })),
     },
   },
 });

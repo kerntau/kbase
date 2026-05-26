@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 import { UIProvider } from "@/context/UIContext";
-import { posts } from "#content";
-import { buildDocTree } from "@/utils/tree";
-import WikiShell from "@/components/WikiShell";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -17,8 +14,18 @@ const fontSerif = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "Knowledge Base",
-  description: "A pure static digital knowledge base built with Next.js and React 19.",
+  title: "Digital Space | Official Platform",
+  description: "A minimalist digital space and knowledge base.",
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+    ],
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
@@ -26,17 +33,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 服务端静态构建目录树
-  const docTree = buildDocTree(posts);
-
   return (
     <html
       lang="en"
       className={`${fontSans.variable} ${fontSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans selection:bg-accent selection:text-white">
         <UIProvider>
-          <WikiShell tree={docTree}>{children}</WikiShell>
+          {children}
         </UIProvider>
       </body>
     </html>

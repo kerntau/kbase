@@ -1,8 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, Search as SearchIcon, List } from "lucide-react";
+import {
+  Menu,
+  Search as SearchIcon,
+  List,
+  Home,
+  ArrowLeft,
+  ArrowRight,
+  PanelLeftClose,
+  PanelLeft,
+} from "lucide-react";
 import { useUI } from "@/context/UIContext";
 import Sidebar from "./Sidebar";
 import TableOfContents from "./TableOfContents";
@@ -25,12 +34,27 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
     currentToc,
   } = useUI();
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // 从 localStorage 恢复折叠状态
+  useEffect(() => {
+    const saved = localStorage.getItem("kb_sidebar_collapsed");
+    if (saved === "true") {
+      setIsSidebarCollapsed(true);
+    }
+  }, []);
+
+  const handleToggleSidebar = (collapsed: boolean) => {
+    setIsSidebarCollapsed(collapsed);
+    localStorage.setItem("kb_sidebar_collapsed", String(collapsed));
+  };
+
   const hasToc = currentToc && currentToc.length > 0;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* 移动端 Header */}
-      <header className="md:hidden sticky top-0 z-40 bg-background/95 backdrop-blur-[2px] border-b border-divider px-4 h-14 flex items-center justify-between select-none no-print">
+      {/* 移动端 Header - 克制且仅在小屏下显示 */}
+      <header className="md:hidden sticky top-0 z-40 bg-background border-b border-divider px-4 h-14 flex items-center justify-between select-none no-print">
         <button
           id="mobile-sidebar-toggle"
           onClick={() => setIsMobileSidebarOpen(true)}
@@ -41,10 +65,11 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
         </button>
 
         <Link
-          href="/"
-          className="font-serif text-base tracking-tight font-medium text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+          href="/kb"
+          className="flex items-center gap-2 font-serif text-base tracking-tight font-medium text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
         >
-          Knowledge Base
+          <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
+          <span>Knowledge Base</span>
         </Link>
 
         <div className="flex items-center gap-1">
@@ -74,16 +99,31 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
 
       {/* 主内容区 */}
       <div className="flex-1 flex max-w-[1440px] w-full mx-auto px-4 md:px-6 lg:px-8">
-
-        {/* 左侧侧边栏 - 桌面常驻 */}
-        <aside className="hidden md:flex md:w-64 lg:w-72 flex-col border-r border-divider sticky top-0 h-screen select-none shrink-0 pr-4 overflow-y-auto no-print">
-          <div className="py-6 border-b border-divider/50 flex flex-col gap-2">
-            <Link
-              href="/"
-              className="font-serif text-lg tracking-tight font-medium text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-            >
-              Knowledge Base
-            </Link>
+        
+        {/* 左侧侧边栏 - 桌面常驻，支持折叠与过渡动效 */}
+        <aside
+          className={`hidden md:flex flex-col border-r border-divider sticky top-0 h-screen select-none shrink-0 no-print transition-all duration-300 ease-in-out overflow-hidden ${
+            isSidebarCollapsed ? "w-0 border-r-0 opacity-0 pr-0" : "w-64 lg:w-72 pr-4"
+          }`}
+        >
+          {/* 侧栏头部菜单 */}
+          <div className="py-6 border-b border-divider/50 flex flex-col gap-2 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <Link
+                href="/kb"
+                className="flex items-center gap-2 font-serif text-lg tracking-tight font-medium text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+              >
+                <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+                <span>Knowledge Base</span>
+              </Link>
+              <button
+                onClick={() => handleToggleSidebar(true)}
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                title="Collapse Sidebar (Ctrl+[)"
+              >
+                <PanelLeftClose size={16} />
+              </button>
+            </div>
 
             {/* 搜索入口 */}
             <button
@@ -93,18 +133,61 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
             >
               <span className="flex items-center gap-1.5">
                 <SearchIcon size={12} />
-                Search…
+                Search...
               </span>
               <kbd className="text-[10px] opacity-60 font-mono">Ctrl K</kbd>
             </button>
           </div>
 
-          <Sidebar tree={tree} />
+          {/* 树状项目目录区 */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <Sidebar tree={tree} />
+          </div>
+
+          {/* 底部常驻回到官网 Portal 入口 */}
+          <div className="mt-auto py-4 border-t border-divider/50 flex items-center justify-between gap-2 shrink-0">
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors font-mono cursor-pointer"
+              title="Return to Portal"
+            >
+              <Home size={14} />
+              Back to Portal
+            </Link>
+          </div>
         </aside>
 
         {/* 中间正文区 */}
         <main className="flex-1 min-w-0 flex justify-center py-6 md:py-10 px-0 md:px-8 lg:px-12">
           <div className="w-full max-w-3xl min-h-full flex flex-col">
+            
+            {/* 历史导航工具条 */}
+            <div className="hidden md:flex items-center gap-2 mb-4 shrink-0 select-none">
+              {isSidebarCollapsed && (
+                <button
+                  onClick={() => handleToggleSidebar(false)}
+                  className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer mr-1"
+                  title="Expand Sidebar"
+                >
+                  <PanelLeft size={16} />
+                </button>
+              )}
+              <button
+                onClick={() => window.history.back()}
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                title="Go Back"
+              >
+                <ArrowLeft size={15} />
+              </button>
+              <button
+                onClick={() => window.history.forward()}
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                title="Go Forward"
+              >
+                <ArrowRight size={15} />
+              </button>
+            </div>
+
             {children}
           </div>
         </main>

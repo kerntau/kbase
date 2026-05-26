@@ -13,6 +13,22 @@ export default function MDXRender({ content }: MDXRenderProps) {
     const el = containerRef.current;
     if (!el) return;
 
+    // ── 标题：自动注入 id（与 Velite TOC url 规则保持一致）────────
+    // Velite 使用 GitHub slug 规则：小写，空格→连字符，去除非字母数字字符
+    const slugify = (text: string): string =>
+      text
+        .toLowerCase()
+        .trim()
+        .replace(/[\s\./\\,:;?!()\[\]"']+/g, "-")
+        .replace(/--+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+    el.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => {
+      if (!heading.id) {
+        heading.id = slugify(heading.textContent ?? "");
+      }
+    });
+
     // ── 表格：添加横向滚动容器 ──────────────────────────
     el.querySelectorAll("table").forEach((table) => {
       if (table.parentElement?.classList.contains("table-container")) return;

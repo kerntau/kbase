@@ -7,10 +7,21 @@ import { posts } from "#content";
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  // 提取去重后的分类
+  const categoryMap: Record<string, string> = {
+    frontend: "前端技术",
+    backend: "后端架构",
+    devops: "运维交付",
+    database: "数据存储",
+    security: "安全防护",
+  };
+
+  // 提取去重后的分类并进行排序（确保分类按钮排序符合树的顺序）
   const categories = Array.from(
     new Set(posts.map((p) => p.category).filter((c): c is string => !!c))
-  );
+  ).sort((a, b) => {
+    const keys = Object.keys(categoryMap);
+    return keys.indexOf(a) - keys.indexOf(b);
+  });
 
   // 按日期降序排列
   const sortedPosts = [...posts].sort((a, b) => {
@@ -29,20 +40,17 @@ export default function HomePage() {
       {/* 卷首语区 */}
       <section className="flex flex-col gap-4 border-b border-divider pb-8">
         <h1 className="font-serif text-3xl md:text-4xl tracking-tight font-normal text-zinc-900 dark:text-zinc-50">
-          Digital Knowledge Base
+          序栈
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed font-serif italic text-base max-w-2xl">
-          A minimalist digital space dedicated to documenting learning
-          milestones, code patterns, security logs, and architectural thoughts.
-          Designed around clarity, breathing room, and paper-like typographic
-          reading experience.
+          这里不是大而全的百科，而是一块纯粹的数字自留地。作为一名信息安全专业的学生，我在这里记录从底层系统、网络渗透到现代全栈架构的真实推演。去除互联网的浮躁噪音，只留白纸黑字的思考与代码沉淀。
         </p>
-        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400 dark:text-zinc-500 font-mono">
-          <span>{posts.length} documents</span>
+        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+          <span>{posts.length} 篇文档</span>
           {categories.length > 0 && (
             <>
-              <span className="select-none">·</span>
-              <span>{categories.length} categories</span>
+              <span className="select-none text-zinc-300 dark:text-zinc-700">·</span>
+              <span>{categories.length} 个分类</span>
             </>
           )}
         </div>
@@ -80,7 +88,7 @@ export default function HomePage() {
                       : "border-divider text-zinc-500 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-100 bg-transparent"
                   }`}
                 >
-                  {category} ({count})
+                  {categoryMap[category] || category} ({count})
                 </button>
               );
             })}
@@ -91,7 +99,7 @@ export default function HomePage() {
       {/* 文章列表 */}
       <section className="flex flex-col gap-6">
         <h2 className="text-xs font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase border-b border-divider/50 pb-2">
-          {activeCategory ? `${activeCategory} — ${displayPosts.length} docs` : "Recent Documents"}
+          {activeCategory ? `${categoryMap[activeCategory] || activeCategory} — ${displayPosts.length} docs` : "Recent Documents"}
         </h2>
 
         {displayPosts.length === 0 ? (
@@ -115,7 +123,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-3 shrink-0">
                     {post.category && (
                       <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-400 dark:text-zinc-500">
-                        {post.category}
+                        {categoryMap[post.category] || post.category}
                       </span>
                     )}
                     {post.date && (

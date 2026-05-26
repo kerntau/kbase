@@ -60,10 +60,7 @@ export default function Sidebar({ tree }: SidebarProps) {
             <button
               onClick={() => toggleNode(node.path)}
               style={indent}
-              className="flex w-full items-center gap-2 py-1.5 pr-2 text-left text-sm rounded-sm
-                         text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/70
-                         dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/40
-                         transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 select-none"
+              className="flex w-full items-center gap-2 py-1.5 pr-2 text-left text-sm rounded-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 select-none"
               aria-expanded={isExpanded}
             >
               <span className="text-zinc-400 dark:text-zinc-500 shrink-0 transition-transform duration-200" style={{ transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>
@@ -95,13 +92,11 @@ export default function Sidebar({ tree }: SidebarProps) {
             href={node.path}
             onClick={() => setIsMobileSidebarOpen(false)}
             style={indent}
-            className={`flex items-center gap-2 py-1.5 pr-2 text-sm rounded-sm
-                        transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400
-                        ${
-                          isActive
-                            ? "font-semibold text-zinc-950 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800/60"
-                            : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/70 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/40"
-                        }`}
+            className={`flex items-center gap-2 py-1.5 pr-2 text-sm rounded-sm transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${
+              isActive
+                ? "font-semibold text-zinc-950 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800"
+                : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
+            }`}
             aria-current={isActive ? "page" : undefined}
           >
             <span className={`shrink-0 ${isActive ? "text-zinc-800 dark:text-zinc-200" : "text-zinc-400 dark:text-zinc-500"}`}>

@@ -33,34 +33,78 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
     return result;
   }, [toc]);
 
-  // IntersectionObserver 追踪当前可见标题
   useEffect(() => {
     if (flatToc.length === 0) return;
 
     const ids = flatToc.map((item) => item.url.replace(/^#/, ""));
-    const elements = ids
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
+    let cachedElements: HTMLElement[] = [];
 
-    // 用 scroll 事件确定最近标题，比 IO 更可靠
-    const handleScroll = () => {
-      const threshold = window.scrollY + SCROLL_OFFSET + 8;
-      let current = flatToc[0]?.url ?? "";
-      for (const el of elements) {
-        const top = el.getBoundingClientRect().top + window.scrollY;
-        if (top <= threshold) {
-          current = `#${el.id}`;
-        }
-      }
-      setActiveId(current);
+    // 获取 DOM 标题元素
+    const getElements = () => {
+      if (cachedElements.length > 0) return cachedElements;
+      cachedElements = ids
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => el !== null);
+      return cachedElements;
     };
 
-    handleScroll(); // 初始执行
+    const handleScroll = () => {
+      const elements = getElements();
+      if (elements.length === 0) return;
+
+      // 1. 触底判定：若已滑到页面最底部，直接高亮最后一个标题
+      const isAtBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 30;
+
+      if (isAtBottom) {
+        setActiveId(`#${elements[elements.length - 1].id}`);
+        return;
+      }
+
+      // 2. 判定线高亮跟随：越过判定线且最靠近判定线的标题
+      const triggerLine = SCROLL_OFFSET + 30;
+      let currentActive = "";
+
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        const rect = el.getBoundingClientRect();
+        // 如果该标题顶部已经越过判定线
+        if (rect.top <= triggerLine) {
+          currentActive = `#${el.id}`;
+        } else {
+          // 由于标题是顺序排列的，一旦遇到没越过判定线的，就可以结束循环了
+          break;
+        }
+      }
+
+      // 如果没有任何标题越过判定线，默认高亮第一个标题
+      if (!currentActive && elements.length > 0) {
+        currentActive = `#${elements[0].id}`;
+      }
+
+      if (currentActive) {
+        setActiveId(currentActive);
+      }
+    };
+
+    // 初始执行，并延迟以保证 MDX 渲染完毕后 id 已被注入
+    handleScroll();
+    const timer1 = setTimeout(handleScroll, 100);
+    const timer2 = setTimeout(handleScroll, 400);
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
   }, [flatToc]);
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+  const handleLinkClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    url: string
+  ) => {
     e.preventDefault();
     const id = url.replace(/^#/, "");
     const el = document.getElementById(id);
@@ -84,18 +128,14 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
         {flatToc.map((item) => {
           const isActive = activeId === item.url;
           const pl =
-            item.depth === 3
-              ? "pl-5"
-              : item.depth >= 4
-              ? "pl-8"
-              : "pl-3";
+            item.depth === 3 ? "pl-5" : item.depth >= 4 ? "pl-8" : "pl-3";
 
           return (
             <a
               key={item.url}
               href={item.url}
               onClick={(e) => handleLinkClick(e, item.url)}
-              className={`-ml-px border-l text-xs py-1 pr-2 transition-all duration-150 focus:outline-none ${pl} ${
+              className={`-ml-px border-l text-xs py-0.5 pr-2 transition-all duration-150 focus:outline-none ${pl} ${
                 isActive
                   ? "border-zinc-800 dark:border-zinc-200 font-semibold text-zinc-900 dark:text-zinc-50"
                   : "border-transparent text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700"

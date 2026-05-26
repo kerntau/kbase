@@ -51,14 +51,14 @@ export default function MobileDrawer({
     <div className="fixed inset-0 z-50 flex no-print">
       {/* 遮罩层 */}
       <div
-        className="absolute inset-0 bg-zinc-950/25 backdrop-blur-[1px] animate-fade-in-overlay dark:bg-black/50"
+        className="absolute inset-0 bg-zinc-950/70 dark:bg-black/80 animate-fade-in-overlay"
         onClick={onClose}
       />
 
       {/* 抽屉面板 */}
       <div
         ref={panelRef}
-        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-background border-divider flex flex-col p-5 shadow-xl ${positionClass} ${slideClass}`}
+        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-[#f5f5f7] dark:bg-black border-divider flex flex-col p-5 shadow-xl ${positionClass} ${slideClass}`}
       >
         {/* 头部区 */}
         <div className="flex items-center justify-between border-b border-divider pb-3 mb-2">

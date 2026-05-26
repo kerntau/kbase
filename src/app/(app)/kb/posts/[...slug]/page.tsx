@@ -43,7 +43,7 @@ export default async function PostPage({ params }: PageProps) {
   // 面包屑：Home > [folder segments] > Title
   const segments = postSlug.split("/");
   const breadcrumbs: { label: string; href?: string }[] = [
-    { label: "Home", href: "/" },
+    { label: "Home", href: "/kb" },
     ...segments.slice(0, -1).map((seg, i) => ({
       label: seg.charAt(0).toUpperCase() + seg.slice(1),
       // 文件夹无独立页面，不添加 href
@@ -79,7 +79,16 @@ export default async function PostPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center gap-2">
           {post.category && (
             <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 dark:text-zinc-500 border border-divider px-2 py-0.5">
-              {post.category}
+              {(() => {
+                const categoryMap: Record<string, string> = {
+                  frontend: "前端技术",
+                  backend: "后端架构",
+                  devops: "运维交付",
+                  database: "数据存储",
+                  security: "安全防护",
+                };
+                return categoryMap[post.category.toLowerCase()] || post.category;
+              })()}
             </span>
           )}
           {post.date && (
@@ -109,7 +118,7 @@ export default async function PostPage({ params }: PageProps) {
       {/* 底部导航提示 */}
       <footer className="mt-8 pt-6 border-t border-divider flex items-center justify-between gap-4">
         <Link
-          href="/"
+          href="/kb"
           className="text-xs text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors font-mono"
         >
           ← Back to index

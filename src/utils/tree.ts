@@ -9,6 +9,14 @@ export interface TreeNode {
 export function buildDocTree(posts: { slug: string; title: string; permalink: string }[]): TreeNode[] {
   const root: TreeNode[] = [];
 
+  const categoryMap: Record<string, string> = {
+    frontend: "前端技术",
+    backend: "后端架构",
+    devops: "运维交付",
+    database: "数据存储",
+    security: "安全防护",
+  };
+
   posts.forEach((post) => {
     const parts = post.slug.split("/");
     let currentLevel = root;
@@ -30,12 +38,13 @@ export function buildDocTree(posts: { slug: string; title: string; permalink: st
         // 目录节点（文件夹）
         let folder = currentLevel.find((item) => item.isFolder && item.name === part);
         if (!folder) {
+          const key = part.toLowerCase();
           folder = {
             name: part,
             path: currentPath,
             isFolder: true,
             children: [],
-            title: part.charAt(0).toUpperCase() + part.slice(1), // 首字母大写做默认名
+            title: categoryMap[key] || (part.charAt(0).toUpperCase() + part.slice(1)),
           };
           currentLevel.push(folder);
         }

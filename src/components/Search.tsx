@@ -126,14 +126,14 @@ export default function Search() {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] px-4 no-print animate-fade-in">
       {/* 遮罩 */}
       <div
-        className="absolute inset-0 bg-zinc-950/20 backdrop-blur-[1.5px] dark:bg-black/45"
+        className="absolute inset-0 bg-zinc-950/70 dark:bg-black/80"
         onClick={() => setIsSearchOpen(false)}
       />
 
       {/* 搜索面板 */}
       <div
         onKeyDown={handleKeyDown}
-        className="relative w-full max-w-xl bg-background border border-divider shadow-2xl flex flex-col overflow-hidden max-h-[62vh]"
+        className="relative w-full max-w-xl bg-[#f5f5f7] dark:bg-black border border-divider shadow-2xl flex flex-col overflow-hidden max-h-[62vh]"
         role="dialog"
         aria-modal="true"
         aria-label="Search"
@@ -210,8 +210,8 @@ export default function Search() {
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`flex items-start gap-3 w-full text-left px-3 py-2.5 transition-colors rounded-sm ${
                       isSelected
-                        ? "bg-zinc-100 dark:bg-zinc-800/70"
-                        : "hover:bg-zinc-50 dark:hover:bg-zinc-900/40"
+                        ? "bg-zinc-100 dark:bg-zinc-850"
+                        : "hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     }`}
                   >
                     <FileText
