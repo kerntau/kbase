@@ -8,6 +8,8 @@ import MDXRender from "@/components/MDXRender";
 import TOCUpdater from "@/components/TOCUpdater";
 import FloatingActions from "@/components/FloatingActions";
 import PageNavigationShortcuts from "@/components/PageNavigationShortcuts";
+import ReadingProgressBar from "@/components/ReadingProgressBar";
+
 
 function countWordsAndReadingTime(htmlContent: string) {
   const cleanText = htmlContent.replace(/<[^>]*>/g, "");
@@ -85,6 +87,7 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <>
+    <ReadingProgressBar />
     <article className="flex flex-col gap-3 py-3 sm:py-4 px-4 sm:px-0 select-text animate-fade-in">
       {/* 面包屑 */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-foreground/40 font-mono flex-wrap mb-2 sm:mb-3.5">
@@ -166,113 +169,59 @@ export default async function PostPage({ params }: PageProps) {
       </div>
 
       {/* 上下文切换 */}
-      <hr className="mt-6 mb-6 border-dashed border-divider/40" />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 select-none">
+      <div className="flex items-center justify-between gap-4 select-none mt-10 mb-6 px-1 border-t border-divider/40 pt-6 w-full">
         {prevPost ? (
           <Link
             href={prevPost.permalink}
-            className="group flex items-center gap-3 p-3 border border-divider/25 hover:border-accent/40 rounded bg-foreground/[0.002] hover:bg-accent/[0.02] hover:-translate-x-1 transition-all duration-200 ease-out"
+            className="group flex items-center gap-2 max-w-[48%] transition-opacity"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2.2"
+              strokeWidth="1.2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="inline-block flex-shrink-0 text-foreground/45 group-hover:text-accent transition-colors duration-200"
+              className="text-foreground/30 group-hover:text-accent/60 transition-colors shrink-0"
             >
               <path d="m15 18-6-6 6-6" />
             </svg>
-            <div className="min-w-0 flex-1">
-              <span className="block text-[9px] uppercase tracking-widest font-mono text-foreground/40 mb-0.5">
-                上一篇
-              </span>
-              <div className="text-xs sm:text-[13px] font-semibold text-foreground group-hover:text-accent transition-colors duration-200 truncate">
-                {prevPost.title}
-              </div>
+            <div className="min-w-0">
+              <span className="text-[15px] sm:text-[16px] font-semibold text-foreground/80 group-hover:text-accent transition-colors truncate block">{prevPost.title}</span>
             </div>
           </Link>
         ) : (
-          <div className="hidden sm:flex items-center gap-3 border border-dashed border-divider/15 rounded p-3 opacity-30 select-none cursor-not-allowed">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="inline-block flex-shrink-0 text-foreground/35"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            <div className="min-w-0 flex-1">
-              <span className="block text-[9px] uppercase tracking-widest font-mono text-foreground/35 mb-0.5">
-                上一篇
-              </span>
-              <div className="text-xs sm:text-[13px] font-medium text-foreground/40">已是第一篇</div>
-            </div>
-          </div>
+          <div className="max-w-[48%]" />
         )}
 
         {nextPost ? (
           <Link
             href={nextPost.permalink}
-            className="group flex items-center justify-between gap-3 p-3 border border-divider/25 hover:border-accent/40 rounded bg-foreground/[0.002] hover:bg-accent/[0.02] hover:translate-x-1 transition-all duration-200 ease-out text-right"
+            className="group flex items-center justify-end gap-2 max-w-[48%] transition-opacity text-right ml-auto"
           >
-            <div className="min-w-0 flex-1">
-              <span className="block text-[9px] uppercase tracking-widest font-mono text-foreground/40 mb-0.5">
-                下一篇
-              </span>
-              <div className="text-xs sm:text-[13px] font-semibold text-foreground group-hover:text-accent transition-colors duration-200 truncate">
-                {nextPost.title}
-              </div>
+            <div className="min-w-0">
+              <span className="text-[15px] sm:text-[16px] font-semibold text-foreground/80 group-hover:text-accent transition-colors truncate block">{nextPost.title}</span>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2.2"
+              strokeWidth="1.2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="inline-block flex-shrink-0 text-foreground/45 group-hover:text-accent transition-colors duration-200"
+              className="text-foreground/30 group-hover:text-accent/60 transition-colors shrink-0"
             >
               <path d="m9 18 6-6-6-6" />
             </svg>
           </Link>
         ) : (
-          <div className="hidden sm:flex items-center justify-between gap-3 border border-dashed border-divider/15 rounded p-3 opacity-30 select-none cursor-not-allowed text-right">
-            <div className="min-w-0 flex-1">
-              <span className="block text-[9px] uppercase tracking-widest font-mono text-foreground/35 mb-0.5">
-                下一篇
-              </span>
-              <div className="text-xs sm:text-[13px] font-medium text-foreground/40">已是最后一篇</div>
-            </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="inline-block flex-shrink-0 text-foreground/35"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </div>
+          <div className="max-w-[48%]" />
         )}
       </div>
     </article>

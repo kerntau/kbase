@@ -2,6 +2,8 @@
 
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-serif: var(--font-serif-lora), Georgia, serif;
   --font-sans: "Microsoft YaHei", "微软雅黑", var(--font-sans-inter), "Inter", "Inter Online", "Source Han Sans SC", "Source Han Sans CN", "Noto Sans SC", "Source Han Sans SC Online", system-ui, -apple-system, sans-serif;
@@ -27,16 +29,14 @@
   --layout-floating-bottom: 1.8rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* 深色模式 — 科技深邃质感与明亮浅蓝 */
-    --background: #09090b;
-    --foreground: #f8fafc;
-    --border: #27272a;
-    --accent: #38bdf8;
-    --muted: rgba(255, 255, 255, 0.05);
-    --body-font-weight: 350;
-  }
+.dark {
+  /* 深色模式 — 科技深邃质感与明亮浅蓝 */
+  --background: #09090b;
+  --foreground: #f8fafc;
+  --border: #27272a;
+  --accent: #38bdf8;
+  --muted: rgba(255, 255, 255, 0.05);
+  --body-font-weight: 350;
 }
 
 body {
@@ -255,6 +255,10 @@ body {
   text-align: justify;
   text-justify: inter-character;
   text-wrap: pretty;
+}
+
+.article-detail > :first-child {
+  margin-top: 0;
 }
 
 .article-detail :is(p, ul, ol, blockquote) {

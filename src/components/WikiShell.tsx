@@ -13,6 +13,11 @@ import {
   ArrowRight,
   PanelLeftClose,
   PanelLeft,
+  ChevronsUpDown,
+  ChevronsDownUp,
+  Sun,
+  Moon,
+  ExternalLink,
 } from "lucide-react";
 import { useUI } from "@/context/UIContext";
 import Sidebar from "./Sidebar";
@@ -35,7 +40,13 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
     setIsMobileTOCOpen,
     setIsSearchOpen,
     currentToc,
+    expandedNodes,
+    toggleExpandAll,
+    theme,
+    setTheme,
   } = useUI();
+
+  const hasExpanded = Object.keys(expandedNodes).some((key) => expandedNodes[key]);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
@@ -47,6 +58,19 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
   const handleToggleSidebar = (collapsed: boolean) => {
     setIsSidebarCollapsed(collapsed);
     localStorage.setItem("kb_sidebar_collapsed", String(collapsed));
+  };
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    if (theme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
   };
 
   const hasToc = currentToc && currentToc.length > 0;
@@ -92,7 +116,13 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
               <List size={18} />
             </button>
           ) : (
-            <div className="w-8" />
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none ml-1"
+              aria-label="Toggle theme"
+            >
+              {mounted ? (theme === "dark" ? <Sun size={18} /> : <Moon size={18} />) : <div className="w-[18px] h-[18px]" />}
+            </button>
           )}
         </div>
       </header>
@@ -108,53 +138,75 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
         >
           <div className="w-64 lg:w-72 h-full flex flex-col pr-4 shrink-0">
             {/* 侧栏头部菜单 */}
-            <div className="py-6 border-b border-divider/50 flex flex-col gap-2 shrink-0">
+            <div className="py-6 border-b border-divider/50 flex flex-col gap-4 shrink-0">
               <div className="flex items-center justify-between gap-2">
                 <Link
                   href="/kb"
                   className="flex items-center gap-2 font-sans text-base tracking-tight font-bold text-foreground hover:text-foreground/75 transition-colors"
                 >
                   <Image src="/logo.png" alt="Logo" width={20} height={20} className="w-5 h-5 object-contain" unoptimized />
-                  <span>Knowledge Base</span>
+                  <span>序栈知识库</span>
                 </Link>
-                <button
-                  onClick={() => handleToggleSidebar(true)}
-                  className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
-                  title="Collapse Sidebar (Ctrl+[)"
-                >
-                  <PanelLeftClose size={16} />
-                </button>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => toggleExpandAll(tree)}
+                    className="p-1.5 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
+                    title={hasExpanded ? "折叠所有目录" : "展开所有目录"}
+                  >
+                    {hasExpanded ? <ChevronsDownUp size={16} /> : <ChevronsUpDown size={16} />}
+                  </button>
+                  <button
+                    onClick={() => handleToggleSidebar(true)}
+                    className="p-1.5 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
+                    title="折叠侧边栏"
+                  >
+                    <PanelLeftClose size={16} />
+                  </button>
+                </div>
               </div>
 
               {/* 搜索入口 */}
               <button
                 id="desktop-search-btn"
                 onClick={() => setIsSearchOpen(true)}
-                className="flex items-center justify-between gap-2 px-3 py-1.5 border border-divider text-left text-xs text-foreground/40 hover:text-foreground hover:border-foreground/40 transition-colors focus:outline-none mt-2 cursor-pointer w-full rounded-sm"
+                className="w-full flex items-center justify-between px-3 py-2 border border-divider text-left text-sm text-foreground/50 hover:text-foreground hover:border-foreground/40 hover:bg-foreground/[0.02] transition-colors focus:outline-none cursor-pointer rounded-md shadow-sm"
               >
-                <span className="flex items-center gap-1.5">
-                  <SearchIcon size={12} />
-                  Search...
+                <span className="flex items-center gap-2">
+                  <SearchIcon size={14} />
+                  搜索文档...
                 </span>
-                <kbd className="text-[10px] opacity-60 font-mono">Ctrl K</kbd>
+                <kbd className="text-[10px] opacity-60 font-mono bg-foreground/5 px-1.5 py-0.5 rounded border border-divider/50">Ctrl K</kbd>
               </button>
             </div>
 
             {/* 树状项目目录区 */}
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <Sidebar tree={tree} />
+            <div className="flex-1 overflow-y-auto min-h-0 relative group">
+              {/* 顶部滚动遮罩渐变 */}
+              <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="py-2">
+                <Sidebar tree={tree} />
+              </div>
+              {/* 底部滚动遮罩渐变 */}
+              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
 
             {/* 底部常驻回到官网 Portal 入口 */}
             <div className="mt-auto py-4 border-t border-divider/50 flex items-center justify-between gap-2 shrink-0">
               <Link
                 href="/"
-                className="flex items-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors font-mono cursor-pointer"
-                title="Return to Portal"
+                className="flex flex-1 items-center justify-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
+                title="返回主站"
               >
-                <Home size={14} />
-                Back to Portal
+                <ExternalLink size={14} />
+                返回主站
               </Link>
+              <button
+                onClick={toggleTheme}
+                className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer shrink-0"
+                title="切换主题"
+              >
+                {mounted ? (theme === "dark" ? <Sun size={15} /> : <Moon size={15} />) : <div className="w-[15px] h-[15px]" />}
+              </button>
             </div>
           </div>
         </aside>
@@ -169,7 +221,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
                 <button
                   onClick={() => handleToggleSidebar(false)}
                   className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer mr-1"
-                  title="Expand Sidebar"
+                  title="展开侧边栏"
                 >
                   <PanelLeft size={16} />
                 </button>
@@ -183,14 +235,14 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
                   }
                 }}
                 className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
-                title="Go Back"
+                title="后退"
               >
                 <ArrowLeft size={15} />
               </button>
               <button
                 onClick={() => window.history.forward()}
                 className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
-                title="Go Forward"
+                title="前进"
               >
                 <ArrowRight size={15} />
               </button>
@@ -210,7 +262,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
       <MobileDrawer
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
-        title="Directory"
+        title="文章目录"
         side="left"
       >
         <Sidebar tree={tree} />
@@ -220,7 +272,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
       <MobileDrawer
         isOpen={isMobileTOCOpen}
         onClose={() => setIsMobileTOCOpen(false)}
-        title="On This Page"
+        title="本页大纲"
         side="right"
       >
         <TableOfContents toc={currentToc} />

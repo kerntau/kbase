@@ -57,14 +57,14 @@ export default function MobileDrawer({
     <div className="fixed inset-0 z-50 flex no-print">
       {/* 遮罩层 */}
       <div
-        className="absolute inset-0 bg-black/45 dark:bg-black/70 animate-fade-in-overlay"
+        className="absolute inset-0 bg-background/50 backdrop-blur-sm animate-fade-in-overlay"
         onClick={onClose}
       />
 
       {/* 抽屉面板 */}
       <div
         ref={panelRef}
-        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-background/85 backdrop-blur-xl border-divider flex flex-col p-5 shadow-xl ${positionClass} ${slideClass}`}
+        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-background/95 dark:bg-background/90 backdrop-blur-2xl border-divider flex flex-col p-5 shadow-[0_0_60px_-15px_rgba(0,0,0,0.3)] ${positionClass} ${slideClass}`}
       >
         {/* 头部区 */}
         <div className="flex items-center justify-between border-b border-divider pb-3 mb-2">
@@ -74,7 +74,7 @@ export default function MobileDrawer({
           <button
             onClick={onClose}
             className="p-1 -mr-1 rounded-md text-foreground/45 hover:text-foreground transition-colors focus:outline-none"
-            aria-label="Close"
+            aria-label="关闭"
           >
             <X size={16} />
           </button>

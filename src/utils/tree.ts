@@ -4,6 +4,7 @@ export interface TreeNode {
   isFolder: boolean;
   children?: TreeNode[];
   title?: string;
+  docCount?: number;
 }
 
 export function buildDocTree(posts: { slug: string; title: string; permalink: string }[]): TreeNode[] {
@@ -33,6 +34,7 @@ export function buildDocTree(posts: { slug: string; title: string; permalink: st
           path: post.permalink,
           isFolder: false,
           title: post.title,
+          docCount: 1,
         });
       } else {
         // 目录节点（文件夹）
@@ -53,6 +55,22 @@ export function buildDocTree(posts: { slug: string; title: string; permalink: st
     });
   });
 
+  // 递归计算每个文件夹的文档总数
+  const calculateDocCounts = (nodes: TreeNode[]): number => {
+    let total = 0;
+    nodes.forEach((node) => {
+      if (node.isFolder) {
+        node.docCount = calculateDocCounts(node.children || []);
+        total += node.docCount;
+      } else {
+        total += 1;
+      }
+    });
+    return total;
+  };
+
+  calculateDocCounts(root);
+
   // 对树进行排序（文件夹在前，文章在后；按标题字母排序）
   const sortTree = (nodes: TreeNode[]) => {
     nodes.sort((a, b) => {
@@ -70,3 +88,4 @@ export function buildDocTree(posts: { slug: string; title: string; permalink: st
   sortTree(root);
   return root;
 }
+

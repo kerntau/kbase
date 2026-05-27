@@ -18,15 +18,16 @@ interface SearchItem {
 type IndexState = "idle" | "loading" | "ready" | "error";
 
 function highlightText(text: string, highlight: string) {
-  if (!highlight.trim()) return <span>{text}</span>;
+  if (!text) return null;
+  if (!highlight.trim()) return <span className="truncate">{text}</span>;
   const escapedHighlight = highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
   const regex = new RegExp(`(${escapedHighlight})`, "gi");
   const parts = text.split(regex);
   return (
-    <span>
+    <span className="truncate">
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <mark key={i} className="bg-accent/15 text-accent font-semibold px-0.5 rounded-xs">
+          <mark key={i} className="bg-foreground/15 text-foreground font-semibold px-0.5 rounded-sm bg-transparent !text-accent">
             {part}
           </mark>
         ) : (
@@ -47,6 +48,15 @@ export default function Search() {
   const [allItems, setAllItems] = useState<SearchItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [indexState, setIndexState] = useState<IndexState>("idle");
+  const [history, setHistory] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("kb_search_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [, startTransition] = useTransition();
 
   const searchIndexRef = useRef<Index | null>(null);
@@ -83,12 +93,24 @@ export default function Search() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [setIsSearchOpen]);
 
-  // 打开时初始化索引
+  // 打开时初始化索引和搜索历史
   useEffect(() => {
     if (!isSearchOpen) return;
 
     // 聚焦输入框
     setTimeout(() => inputRef.current?.focus(), 60);
+
+    // 重新加载历史记录（可能在其他标签页中被修改）
+    try {
+      const saved = localStorage.getItem("kb_search_history");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // 使用 setTimeout 避免同步 setState 级联渲染
+        setTimeout(() => setHistory(parsed), 0);
+      }
+    } catch {
+      // 忽略解析错误
+    }
 
     // 已加载过则跳过
     if (searchIndexRef.current) return;
@@ -139,13 +161,44 @@ export default function Search() {
     });
   }, [debouncedQuery, allItems]);
 
+  // 保存搜索历史
+  const saveToHistory = useCallback((q: string) => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    setHistory((prev) => {
+      const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(0, 5);
+      localStorage.setItem("kb_search_history", JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  // 删除单条搜索历史
+  const deleteHistoryItem = useCallback((e: React.MouseEvent, item: string) => {
+    e.stopPropagation();
+    setHistory((prev) => {
+      const next = prev.filter((i) => i !== item);
+      localStorage.setItem("kb_search_history", JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  // 清空所有搜索历史
+  const clearHistory = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHistory([]);
+    localStorage.setItem("kb_search_history", JSON.stringify([]));
+  }, []);
+
   const handleNavigate = useCallback(
     (path: string) => {
+      if (query.trim()) {
+        saveToHistory(query);
+      }
       setIsSearchOpen(false);
       setQuery("");
       router.push(path);
     },
-    [router, setIsSearchOpen]
+    [router, setIsSearchOpen, query, saveToHistory]
   );
 
   // 键盘导航
@@ -172,105 +225,77 @@ export default function Search() {
   if (!isSearchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] px-4 no-print select-none">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4 sm:px-6 no-print select-none">
       {/* 遮罩 */}
       <div
-        className="absolute inset-0 bg-black/45 dark:bg-black/70"
+        className="absolute inset-0 bg-background/50 backdrop-blur-sm"
         onClick={() => setIsSearchOpen(false)}
       />
 
       {/* 搜索面板 */}
       <div
         onKeyDown={handleKeyDown}
-        className="relative w-full max-w-xl bg-background/80 backdrop-blur-xl border border-divider shadow-2xl flex flex-col overflow-hidden max-h-[62vh] rounded-2xl animate-search-reveal"
+        className="relative w-full max-w-[768px] bg-background border border-[#3b82f6] shadow-[0_0_0_3px_rgba(59,130,246,0.15)] dark:border-[#3b82f6] dark:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] flex flex-col overflow-hidden max-h-[85vh] rounded-xl animate-search-reveal"
         role="dialog"
         aria-modal="true"
         aria-label="Search"
       >
         {/* 输入区 */}
-        <div className="flex items-center gap-3 px-4 border-b border-divider h-12 shrink-0">
-          <SearchIcon size={15} className="text-foreground/40 shrink-0" />
+        <div className="flex items-center gap-3 px-5 h-14 border-b border-divider/50 shrink-0">
+          <SearchIcon size={18} className="text-foreground/35 shrink-0" />
           <input
             ref={inputRef}
             id="search-input"
             type="text"
-            placeholder="Search documents…"
+            placeholder="键入开始搜索"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent border-0 text-sm focus:outline-none text-foreground placeholder-foreground/35"
+            className="flex-1 bg-transparent border-0 text-base focus:outline-none focus:ring-0 focus:border-transparent text-foreground placeholder-foreground/35"
             autoComplete="off"
           />
-          <div className="flex items-center gap-2 shrink-0">
-            {query && (
-              <button
-                onClick={() => setQuery("")}
-                className="p-1 rounded text-foreground/40 hover:text-foreground transition-colors"
-                aria-label="Clear"
-              >
-                <X size={13} />
-              </button>
-            )}
+          {query && (
+            <button
+              onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+              className="p-1 rounded-full text-foreground/35 hover:text-foreground hover:bg-foreground/5 transition-colors"
+              aria-label="清除内容"
+            >
+              <X size={16} />
+            </button>
+          )}
+          {!query && (
             <button
               onClick={() => setIsSearchOpen(false)}
-              className="text-[10px] text-foreground/40 border border-divider px-1.5 py-0.5 hover:text-foreground transition-colors"
+              className="p-1 rounded-full text-foreground/35 hover:text-foreground hover:bg-foreground/5 transition-colors"
+              aria-label="关闭"
             >
-              ESC
+              <X size={16} />
             </button>
-          </div>
+          )}
         </div>
 
         {/* 结果区 */}
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto scroll-smooth">
           {indexState === "error" ? (
-            <div className="py-8 text-center flex flex-col items-center gap-2">
-              <AlertCircle size={18} className="text-foreground/45" />
-              <p className="text-sm text-foreground/45">
-                Search index not available.
+            <div className="py-12 text-center flex flex-col items-center gap-3">
+              <AlertCircle size={24} className="text-destructive/60" />
+              <p className="text-sm text-foreground/60">
+                搜索索引加载失败。
               </p>
-              <p className="text-xs text-foreground/35">
-                Run <code className="font-mono bg-muted px-1 py-0.5">npm run build</code> to generate it.
+              <p className="text-xs text-foreground/40">
+                请运行 <code className="font-mono bg-foreground/5 px-1.5 py-0.5 rounded">npm run build</code> 生成它。
               </p>
             </div>
           ) : indexState === "loading" ? (
-            <div className="py-8 text-center text-sm text-foreground/45">
-              Loading index…
+            <div className="py-12 text-center text-sm text-foreground/40 animate-pulse">
+              正在加载索引…
             </div>
-          ) : query.trim() === "" ? (
-            <div className="py-6 px-4 select-none">
-              <div className="text-center text-xs text-foreground/45 mb-4.5">
-                Type to search — full-text, offline.
-                {allItems.length > 0 && (
-                  <span className="block mt-0.5 opacity-85">
-                    {allItems.length} documents indexed
-                  </span>
-                )}
-              </div>
-              <div className="border-t border-divider/40 pt-4">
-                <h4 className="text-[10px] font-bold tracking-widest text-foreground/40 uppercase mb-2">
-                  Popular Topics / 热门技术主题
-                </h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {["安全", "架构", "并发", "存储", "运维"].map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => {
-                        setQuery(tag);
-                        inputRef.current?.focus();
-                      }}
-                      className="text-[11px] font-mono border border-divider hover:border-foreground/35 px-2.5 py-1 rounded-sm text-foreground/60 hover:text-foreground transition-all cursor-pointer bg-foreground/[0.01] dark:bg-white/[0.01]"
-                    >
-                      #{tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : results.length === 0 ? (
-            <div className="py-8 text-center text-sm text-foreground/45">
-              No results for &ldquo;{query}&rdquo;
+          ) : query.trim() === "" ? null : results.length === 0 ? (
+            <div className="py-12 text-center text-sm text-foreground/45 flex flex-col items-center gap-2">
+              <SearchIcon size={24} className="text-foreground/20 mb-2" />
+              未找到与 &ldquo;<span className="text-foreground font-semibold">{query}</span>&rdquo; 相关的文档
             </div>
           ) : (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col">
               {results.map((item, idx) => {
                 const isSelected = idx === selectedIndex;
                 return (
@@ -279,47 +304,28 @@ export default function Search() {
                     ref={isSelected ? activeItemRef : undefined}
                     onClick={() => handleNavigate(item.permalink)}
                     onMouseEnter={() => setSelectedIndex(idx)}
-                    className={`flex items-start gap-3 w-full text-left px-3 py-2.5 transition-colors rounded-sm ${
+                    className={`relative flex flex-col w-full text-left px-6 py-4 transition-colors duration-150 border-b border-divider/30 last:border-b-0 outline-none focus:outline-none ${
                       isSelected
-                        ? "bg-foreground/5 dark:bg-foreground/10"
-                        : "hover:bg-foreground/[0.02] dark:hover:bg-foreground/[0.05]"
+                        ? "bg-foreground/[0.03] dark:bg-foreground/[0.06]"
+                        : ""
                     }`}
                   >
-                    <FileText
-                      size={14}
-                      className={`mt-0.5 shrink-0 ${
-                        isSelected
-                          ? "text-foreground/80"
-                          : "text-foreground/40"
-                      }`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className={`text-sm font-medium truncate ${
-                            isSelected
-                              ? "text-foreground"
-                              : "text-foreground/75"
-                          }`}
-                        >
-                          {highlightText(item.title, query)}
+                    {/* 标题行：标题 + 分类面包屑 */}
+                    <div className="flex items-baseline gap-3 mb-1">
+                      <span className="text-base font-bold text-foreground leading-snug">
+                        {highlightText(item.title, query)}
+                      </span>
+                      {item.category && (
+                        <span className="text-xs text-foreground/40 shrink-0">
+                          &gt; {item.category}
                         </span>
-                        {item.category && (
-                          <span className="text-[10px] uppercase tracking-wider font-semibold text-foreground/40 px-1.5 py-0.5 border border-divider shrink-0">
-                            {item.category}
-                          </span>
-                        )}
-                      </div>
-                      {item.description && (
-                        <p className="text-xs text-foreground/40 truncate mt-0.5">
-                          {highlightText(item.description, query)}
-                        </p>
                       )}
                     </div>
-                    {isSelected && (
-                      <span className="text-[10px] text-foreground/40 flex items-center gap-0.5 self-center shrink-0">
-                        <CornerDownLeft size={10} />
-                      </span>
+                    {/* 正文片段 */}
+                    {item.description && (
+                      <p className="text-sm text-foreground/55 leading-relaxed line-clamp-3">
+                        {highlightText(item.description, query)}
+                      </p>
                     )}
                   </button>
                 );
@@ -330,10 +336,10 @@ export default function Search() {
 
         {/* 底部快捷键提示 */}
         {results.length > 0 && (
-          <div className="border-t border-divider px-4 py-2 flex items-center gap-4 text-[10px] text-foreground/40 shrink-0">
-            <span className="flex items-center gap-1"><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-            <span className="flex items-center gap-1"><kbd>↵</kbd> open</span>
-            <span className="flex items-center gap-1"><kbd>ESC</kbd> close</span>
+          <div className="border-t border-divider/50 px-6 py-2.5 flex items-center justify-center gap-6 text-xs text-foreground/40 shrink-0">
+            <span className="flex items-center gap-1">↑↓ 切换</span>
+            <span className="flex items-center gap-1">⏎ 选择</span>
+            <span className="flex items-center gap-1">Esc 关闭</span>
           </div>
         )}
       </div>
