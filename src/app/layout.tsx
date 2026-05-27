@@ -14,9 +14,9 @@ const fontSerif = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "序栈 | 秩序之始与技术之栈",
-  description: "序栈 (Digital Space) 是一个专注于网络安全、系统底层与现代全栈架构推演的数字自留地。去除网络浮躁，留存白纸黑字的思考与代码沉淀。",
-  keywords: ["序栈", "知识库", "网络安全", "系统底层", "全栈架构", "渗透测试", "React", "Next.js", "极客"],
+  title: "序栈 | 个人知识库",
+  description: "序栈知识库，记录网络安全、系统底层与现代架构的技术沉淀与实践。",
+  keywords: ["序栈", "知识库", "网络安全", "系统底层", "全栈架构"],
   icons: {
     icon: [
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },

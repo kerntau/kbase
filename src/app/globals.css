@@ -4,7 +4,7 @@
 
 @theme {
   --font-serif: var(--font-serif-lora), Georgia, serif;
-  --font-sans: var(--font-sans-inter), "Inter", "Inter Online", "Source Han Sans SC", "Source Han Sans CN", "Noto Sans SC", "Source Han Sans SC Online", system-ui, -apple-system, sans-serif;
+  --font-sans: "Microsoft YaHei", "微软雅黑", var(--font-sans-inter), "Inter", "Inter Online", "Source Han Sans SC", "Source Han Sans CN", "Noto Sans SC", "Source Han Sans SC Online", system-ui, -apple-system, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-divider: var(--border);
@@ -13,11 +13,11 @@
 }
 
 :root {
-  /* 浅色模式 — 现代官网质感 */
-  --background: #fcfcfd;
+  /* 浅色模式 — 温润柔白质感与现代浅蓝 */
+  --background: #f9fafb;
   --foreground: #0f172a;
   --border: #e2e8f0;
-  --accent: #2563eb;
+  --accent: #0284c7;
   --muted: #f1f5f9;
   --body-font-weight: 400;
   /* 悬浮控件定位 */
@@ -29,11 +29,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* 深色模式 — 科技深邃质感 */
+    /* 深色模式 — 科技深邃质感与明亮浅蓝 */
     --background: #09090b;
     --foreground: #f8fafc;
     --border: #27272a;
-    --accent: #3b82f6;
+    --accent: #38bdf8;
     --muted: rgba(255, 255, 255, 0.05);
     --body-font-weight: 350;
   }
@@ -52,6 +52,8 @@ body {
   /* 优化字体渲染，让文字看起来更锐利、更高级 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* 仅允许合成斜体，禁止合成粗体，防止中文字体及图标变形 */
+  font-synthesis: style;
 }
 
 .border-divider {
@@ -89,6 +91,7 @@ body {
 
 .animate-apple-reveal {
   animation: apple-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform, filter;
   opacity: 0;
 }
 
@@ -108,6 +111,7 @@ body {
 .animate-spring-reveal {
   /* 阻尼回弹效果 */
   animation: spring-reveal 1.35s cubic-bezier(0.23, 1.25, 0.46, 1) forwards;
+  will-change: opacity, transform, filter;
   opacity: 0;
 }
 
@@ -128,7 +132,21 @@ body {
 
 .animate-text-focus-in {
   animation: text-focus-in 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  will-change: opacity, transform, filter;
   opacity: 0;
+}
+
+/* ─── 极细技术网格背景与遮罩 ────────────────────── */
+.bg-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, color-mix(in oklab, var(--border) 4.5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 4.5%, transparent) 1px, transparent 1px);
+}
+
+.bg-grid-mask {
+  mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
 }
 
 @keyframes liquid-glow-1 {
@@ -230,17 +248,17 @@ body {
 
 .article-detail {
   font-family: var(--font-sans);
-  font-size: 0.99rem;
-  line-height: 1.7;
+  font-size: 0.96rem;
+  line-height: 1.68;
   letter-spacing: 0.004em;
-  font-weight: var(--body-font-weight);
+  font-weight: 430;
   text-align: justify;
   text-justify: inter-character;
   text-wrap: pretty;
 }
 
 .article-detail :is(p, ul, ol, blockquote) {
-  margin-block: 0.72em;
+  margin-block: 0.68em;
 }
 
 .article-detail :is(li, figcaption) {
@@ -255,16 +273,18 @@ body {
 
 .article-detail h2 {
   font-family: var(--font-sans);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.28rem;
   line-height: 1.28;
   margin-top: 1.2em;
   margin-bottom: 0.44em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px dashed color-mix(in oklab, var(--border) 60%, transparent);
 }
 
 .article-detail h3 {
   font-family: var(--font-sans);
-  font-weight: 700;
+  font-weight: 750;
   font-size: 1.12rem;
   line-height: 1.32;
   margin-top: 1em;
@@ -281,19 +301,42 @@ body {
 }
 
 .article-detail :is(h2, h3, h4, h5, h6) {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: 5.5rem;
+  color: var(--foreground);
+}
+
+/* ── 链接 ──────────────────────────────────────────── */
+
+.article-detail a {
+  border-bottom: 1px solid color-mix(in oklab, var(--accent) 30%, transparent) !important;
+  color: var(--foreground) !important;
+  text-decoration: none !important;
+  transition: border-color 0.2s ease, color 0.2s ease !important;
+}
+
+.article-detail a:hover {
+  border-bottom-color: var(--accent) !important;
+  color: var(--accent) !important;
 }
 
 /* ── 引用块 ────────────────────────────────────────── */
 
 .article-detail blockquote {
+  font-family: var(--font-serif);
   font-size: 1rem;
   line-height: 1.58;
   letter-spacing: 0.01em;
   font-weight: 430;
   padding: 0.62rem 0.82rem;
   margin-block: 0.95rem;
+  background-color: color-mix(in oklab, var(--accent) 4%, transparent);
+  border-left: 3px solid var(--accent) !important;
   border-radius: 0 0.35rem 0.35rem 0;
+  color: var(--foreground);
+}
+
+.dark .article-detail blockquote {
+  background-color: color-mix(in oklab, var(--accent) 6%, transparent);
 }
 
 .article-detail blockquote > :is(p, ul, ol) {
@@ -431,8 +474,8 @@ body {
 
 @media (max-width: 639px) {
   .article-detail {
-    font-size: 1.05rem;
-    line-height: 1.8;
+    font-size: 0.93rem;
+    line-height: 1.62;
   }
 
   .article-detail :is(h2, h3, h4) {
@@ -508,4 +551,22 @@ body {
   :root {
     --layout-page-gutter: 0.75rem;
   }
+}
+
+/* ── 搜索面板高级回弹入场动效 ──────────────────── */
+@keyframes search-reveal {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.96) translateY(-12px); 
+    filter: blur(4px);
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+    filter: blur(0);
+  }
+}
+
+.animate-search-reveal {
+  animation: search-reveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useUI } from "@/context/UIContext";
 
 export interface VeliteTocItem {
@@ -19,6 +19,16 @@ const SCROLL_OFFSET = 72;
 export default function TableOfContents({ toc }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
   const { setIsMobileTOCOpen } = useUI();
+  const isClickScrollingRef = useRef(false);
+  const cleanupScrollEndRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cleanupScrollEndRef.current) {
+        cleanupScrollEndRef.current();
+      }
+    };
+  }, []);
 
   // 将树状 toc 拍平
   const flatToc = useMemo(() => {
@@ -49,6 +59,7 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
     };
 
     const handleScroll = () => {
+      if (isClickScrollingRef.current) return;
       const elements = getElements();
       if (elements.length === 0) return;
 
@@ -120,11 +131,40 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
     const id = url.replace(/^#/, "");
     const el = document.getElementById(id);
     if (el) {
+      isClickScrollingRef.current = true;
+      setActiveId(url);
+      
       const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
       window.scrollTo({ top, behavior: "smooth" });
       window.history.pushState(null, "", url);
-      setActiveId(url);
       setIsMobileTOCOpen(false);
+
+      if (cleanupScrollEndRef.current) {
+        cleanupScrollEndRef.current();
+      }
+
+      const handleScrollEnd = () => {
+        setTimeout(() => {
+          isClickScrollingRef.current = false;
+        }, 50);
+        window.removeEventListener("scrollend", handleScrollEnd);
+        cleanupScrollEndRef.current = null;
+      };
+
+      cleanupScrollEndRef.current = () => {
+        window.removeEventListener("scrollend", handleScrollEnd);
+      };
+
+      if ("onscrollend" in window) {
+        window.addEventListener("scrollend", handleScrollEnd);
+      } else {
+        const timer = setTimeout(() => {
+          isClickScrollingRef.current = false;
+        }, 800);
+        cleanupScrollEndRef.current = () => {
+          clearTimeout(timer);
+        };
+      }
     }
   };
 

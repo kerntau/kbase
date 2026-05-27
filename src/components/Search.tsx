@@ -17,11 +17,32 @@ interface SearchItem {
 
 type IndexState = "idle" | "loading" | "ready" | "error";
 
+function highlightText(text: string, highlight: string) {
+  if (!highlight.trim()) return <span>{text}</span>;
+  const escapedHighlight = highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const regex = new RegExp(`(${escapedHighlight})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <span>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-accent/15 text-accent font-semibold px-0.5 rounded-xs">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </span>
+  );
+}
+
 export default function Search() {
   const router = useRouter();
   const { isSearchOpen, setIsSearchOpen } = useUI();
 
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<SearchItem[]>([]);
   const [allItems, setAllItems] = useState<SearchItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -30,6 +51,25 @@ export default function Search() {
 
   const searchIndexRef = useRef<Index | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const activeItemRef = useRef<HTMLButtonElement>(null);
+
+  // 输入防抖
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // 监听选中项改变，自动平滑滚动
+  useEffect(() => {
+    if (activeItemRef.current) {
+      activeItemRef.current.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+  }, [selectedIndex]);
 
   // Ctrl+K / Cmd+K 快捷键
   useEffect(() => {
@@ -55,7 +95,15 @@ export default function Search() {
 
     setIndexState("loading");
 
-    const idx = new Index({ tokenize: "forward", resolution: 9 });
+    // 中英文混合高性能分词器
+    const idx = new Index({
+      tokenize: ((str: string) => {
+        const cjkRegex = /[\u4e00-\u9fa5]/g;
+        const englishWords = str.replace(cjkRegex, " ").split(/[\s\.\-\/_]+/).filter(Boolean);
+        const cjkChars = str.match(cjkRegex) || [];
+        return [...englishWords, ...cjkChars];
+      }) as any
+    });
 
     fetch("/search-index.json")
       .then((res) => {
@@ -78,17 +126,17 @@ export default function Search() {
 
   // 执行搜索
   useEffect(() => {
-    if (!query.trim() || !searchIndexRef.current) {
+    if (!debouncedQuery.trim() || !searchIndexRef.current) {
       setResults([]);
       setSelectedIndex(0);
       return;
     }
     startTransition(() => {
-      const hits = searchIndexRef.current!.search(query, { limit: 8 }) as number[];
+      const hits = searchIndexRef.current!.search(debouncedQuery, { limit: 8 }) as number[];
       setResults(hits.map((i) => allItems[i]).filter(Boolean));
       setSelectedIndex(0);
     });
-  }, [query, allItems]);
+  }, [debouncedQuery, allItems]);
 
   const handleNavigate = useCallback(
     (path: string) => {
@@ -123,7 +171,7 @@ export default function Search() {
   if (!isSearchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] px-4 no-print animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] px-4 no-print select-none">
       {/* 遮罩 */}
       <div
         className="absolute inset-0 bg-black/45 dark:bg-black/70"
@@ -133,7 +181,7 @@ export default function Search() {
       {/* 搜索面板 */}
       <div
         onKeyDown={handleKeyDown}
-        className="relative w-full max-w-xl bg-background/80 backdrop-blur-xl border border-divider shadow-2xl flex flex-col overflow-hidden max-h-[62vh] rounded-2xl"
+        className="relative w-full max-w-xl bg-background/80 backdrop-blur-xl border border-divider shadow-2xl flex flex-col overflow-hidden max-h-[62vh] rounded-2xl animate-search-reveal"
         role="dialog"
         aria-modal="true"
         aria-label="Search"
@@ -187,13 +235,34 @@ export default function Search() {
               Loading index…
             </div>
           ) : query.trim() === "" ? (
-            <div className="py-8 text-center text-sm text-foreground/45">
-              Type to search — full-text, offline.
-              {allItems.length > 0 && (
-                <span className="block mt-1 text-xs text-foreground/35">
-                  {allItems.length} documents indexed
-                </span>
-              )}
+            <div className="py-6 px-4 select-none">
+              <div className="text-center text-xs text-foreground/45 mb-4.5">
+                Type to search — full-text, offline.
+                {allItems.length > 0 && (
+                  <span className="block mt-0.5 opacity-85">
+                    {allItems.length} documents indexed
+                  </span>
+                )}
+              </div>
+              <div className="border-t border-divider/40 pt-4">
+                <h4 className="text-[10px] font-bold tracking-widest text-foreground/40 uppercase mb-2">
+                  Popular Topics / 热门技术主题
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["安全", "架构", "并发", "存储", "运维"].map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        setQuery(tag);
+                        inputRef.current?.focus();
+                      }}
+                      className="text-[11px] font-mono border border-divider hover:border-foreground/35 px-2.5 py-1 rounded-sm text-foreground/60 hover:text-foreground transition-all cursor-pointer bg-foreground/[0.01] dark:bg-white/[0.01]"
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : results.length === 0 ? (
             <div className="py-8 text-center text-sm text-foreground/45">
@@ -206,6 +275,7 @@ export default function Search() {
                 return (
                   <button
                     key={item.permalink}
+                    ref={isSelected ? activeItemRef : undefined}
                     onClick={() => handleNavigate(item.permalink)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`flex items-start gap-3 w-full text-left px-3 py-2.5 transition-colors rounded-sm ${
@@ -231,7 +301,7 @@ export default function Search() {
                               : "text-foreground/75"
                           }`}
                         >
-                          {item.title}
+                          {highlightText(item.title, query)}
                         </span>
                         {item.category && (
                           <span className="text-[10px] uppercase tracking-wider font-semibold text-foreground/40 px-1.5 py-0.5 border border-divider shrink-0">
@@ -241,7 +311,7 @@ export default function Search() {
                       </div>
                       {item.description && (
                         <p className="text-xs text-foreground/40 truncate mt-0.5">
-                          {item.description}
+                          {highlightText(item.description, query)}
                         </p>
                       )}
                     </div>

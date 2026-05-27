@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Menu,
@@ -36,15 +37,12 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
     currentToc,
   } = useUI();
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  // 从 localStorage 恢复折叠状态
-  useEffect(() => {
-    const saved = localStorage.getItem("kb_sidebar_collapsed");
-    if (saved === "true") {
-      setIsSidebarCollapsed(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("kb_sidebar_collapsed") === "true";
     }
-  }, []);
+    return false;
+  });
 
   const handleToggleSidebar = (collapsed: boolean) => {
     setIsSidebarCollapsed(collapsed);
@@ -68,10 +66,10 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
 
         <Link
           href="/kb"
-          className="flex items-center gap-2 font-serif text-base tracking-tight font-medium text-foreground hover:text-foreground/75 transition-colors"
+          className="flex items-center gap-2 font-sans text-sm sm:text-base tracking-tight font-bold text-foreground hover:text-foreground/75 transition-colors"
         >
-          <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
-          <span>Knowledge Base</span>
+          <Image src="/logo.png" alt="Logo" width={20} height={20} className="w-5 h-5 object-contain mix-blend-multiply dark:mix-blend-screen rounded-sm" unoptimized />
+          <span>序栈知识库</span>
         </Link>
 
         <div className="flex items-center gap-1">
@@ -104,64 +102,66 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
         
         {/* 左侧侧边栏 - 桌面常驻，支持折叠与过渡动效 */}
         <aside
-          className={`hidden md:flex flex-col border-r border-divider sticky top-0 h-screen select-none shrink-0 no-print transition-all duration-300 ease-in-out overflow-hidden ${
-            isSidebarCollapsed ? "w-0 border-r-0 opacity-0 pr-0" : "w-64 lg:w-72 pr-4"
+          className={`hidden md:flex flex-col border-r border-divider sticky top-0 h-screen select-none shrink-0 no-print transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) overflow-hidden ${
+            isSidebarCollapsed ? "w-0 border-r-0 opacity-0" : "w-64 lg:w-72"
           }`}
         >
-          {/* 侧栏头部菜单 */}
-          <div className="py-6 border-b border-divider/50 flex flex-col gap-2 shrink-0">
-            <div className="flex items-center justify-between gap-2">
-              <Link
-                href="/kb"
-                className="flex items-center gap-2 font-serif text-lg tracking-tight font-medium text-foreground hover:text-foreground/75 transition-colors"
-              >
-                <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
-                <span>Knowledge Base</span>
-              </Link>
+          <div className="w-64 lg:w-72 h-full flex flex-col pr-4 shrink-0">
+            {/* 侧栏头部菜单 */}
+            <div className="py-6 border-b border-divider/50 flex flex-col gap-2 shrink-0">
+              <div className="flex items-center justify-between gap-2">
+                <Link
+                  href="/kb"
+                  className="flex items-center gap-2 font-sans text-base tracking-tight font-bold text-foreground hover:text-foreground/75 transition-colors"
+                >
+                  <Image src="/logo.png" alt="Logo" width={20} height={20} className="w-5 h-5 object-contain" unoptimized />
+                  <span>Knowledge Base</span>
+                </Link>
+                <button
+                  onClick={() => handleToggleSidebar(true)}
+                  className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
+                  title="Collapse Sidebar (Ctrl+[)"
+                >
+                  <PanelLeftClose size={16} />
+                </button>
+              </div>
+
+              {/* 搜索入口 */}
               <button
-                onClick={() => handleToggleSidebar(true)}
-                className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
-                title="Collapse Sidebar (Ctrl+[)"
+                id="desktop-search-btn"
+                onClick={() => setIsSearchOpen(true)}
+                className="flex items-center justify-between gap-2 px-3 py-1.5 border border-divider text-left text-xs text-foreground/40 hover:text-foreground hover:border-foreground/40 transition-colors focus:outline-none mt-2 cursor-pointer w-full rounded-sm"
               >
-                <PanelLeftClose size={16} />
+                <span className="flex items-center gap-1.5">
+                  <SearchIcon size={12} />
+                  Search...
+                </span>
+                <kbd className="text-[10px] opacity-60 font-mono">Ctrl K</kbd>
               </button>
             </div>
 
-            {/* 搜索入口 */}
-            <button
-              id="desktop-search-btn"
-              onClick={() => setIsSearchOpen(true)}
-              className="flex items-center justify-between gap-2 px-3 py-1.5 border border-divider text-left text-xs text-foreground/40 hover:text-foreground hover:border-foreground/40 transition-colors focus:outline-none mt-2 cursor-pointer w-full"
-            >
-              <span className="flex items-center gap-1.5">
-                <SearchIcon size={12} />
-                Search...
-              </span>
-              <kbd className="text-[10px] opacity-60 font-mono">Ctrl K</kbd>
-            </button>
-          </div>
+            {/* 树状项目目录区 */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <Sidebar tree={tree} />
+            </div>
 
-          {/* 树状项目目录区 */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            <Sidebar tree={tree} />
-          </div>
-
-          {/* 底部常驻回到官网 Portal 入口 */}
-          <div className="mt-auto py-4 border-t border-divider/50 flex items-center justify-between gap-2 shrink-0">
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors font-mono cursor-pointer"
-              title="Return to Portal"
-            >
-              <Home size={14} />
-              Back to Portal
-            </Link>
+            {/* 底部常驻回到官网 Portal 入口 */}
+            <div className="mt-auto py-4 border-t border-divider/50 flex items-center justify-between gap-2 shrink-0">
+              <Link
+                href="/"
+                className="flex items-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors font-mono cursor-pointer"
+                title="Return to Portal"
+              >
+                <Home size={14} />
+                Back to Portal
+              </Link>
+            </div>
           </div>
         </aside>
 
         {/* 中间正文区 */}
-        <main className="flex-1 min-w-0 flex justify-center py-4 md:py-6 px-0 sm:px-4 md:px-6">
-          <div className="w-full max-w-4xl min-h-full flex flex-col">
+        <main className="flex-1 min-w-0 flex justify-center py-4 md:py-6 px-0 sm:px-4 md:px-6 lg:px-8">
+          <div className="w-full max-w-[820px] min-h-full flex flex-col">
             
             {/* 历史导航工具条 */}
             <div className="hidden md:flex items-center gap-2 mb-4 shrink-0 select-none">
