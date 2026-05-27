@@ -1,218 +1,206 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, LayoutTemplate, BookOpen, Terminal, Shield } from "lucide-react";
+import Countdown from "@/components/Countdown";
 
-// 目标日期：2026年7月15日
-const TARGET_DATE = new Date("2026-07-15T00:00:00+08:00").getTime();
-
-const Countdown = () => {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const updateTime = () => {
-      const now = new Date().getTime();
-      const difference = TARGET_DATE - now;
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((difference % (1000 * 60)) / 1000),
-        });
-      }
-    };
-
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="flex gap-3 md:gap-5 opacity-0">
-        <div className="h-16 w-16 md:w-20 md:h-20" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-3 md:gap-5 text-center mt-6 mb-2">
-      <div className="flex flex-col items-center justify-center bg-white/40 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-md rounded-2xl w-16 h-16 md:w-20 md:h-20 shadow-sm transition-transform hover:scale-105">
-        <span className="text-xl md:text-3xl font-black text-zinc-800 dark:text-zinc-100">{timeLeft.days}</span>
-        <span className="text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-wider">Days</span>
-      </div>
-      <span className="text-xl font-light text-zinc-300 dark:text-zinc-700">:</span>
-      <div className="flex flex-col items-center justify-center bg-white/40 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-md rounded-2xl w-16 h-16 md:w-20 md:h-20 shadow-sm transition-transform hover:scale-105">
-        <span className="text-xl md:text-3xl font-black text-zinc-800 dark:text-zinc-100">{timeLeft.hours.toString().padStart(2, '0')}</span>
-        <span className="text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-wider">Hours</span>
-      </div>
-      <span className="text-xl font-light text-zinc-300 dark:text-zinc-700">:</span>
-      <div className="flex flex-col items-center justify-center bg-white/40 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-md rounded-2xl w-16 h-16 md:w-20 md:h-20 shadow-sm transition-transform hover:scale-105">
-        <span className="text-xl md:text-3xl font-black text-zinc-800 dark:text-zinc-100">{timeLeft.minutes.toString().padStart(2, '0')}</span>
-        <span className="text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-wider">Mins</span>
-      </div>
-      <span className="text-xl font-light text-zinc-300 dark:text-zinc-700">:</span>
-      <div className="flex flex-col items-center justify-center bg-white/40 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-md rounded-2xl w-16 h-16 md:w-20 md:h-20 shadow-sm transition-transform hover:scale-105">
-        <span className="text-xl md:text-3xl font-black text-zinc-800 dark:text-zinc-100">{timeLeft.seconds.toString().padStart(2, '0')}</span>
-        <span className="text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-wider">Secs</span>
-      </div>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "序栈 | 秩序之始与技术之栈",
+  description: "序栈 (Digital Space) 是一个专注于网络安全、系统底层与现代全栈架构推演的数字自留地。去除网络浮躁，留存白纸黑字的思考与代码沉淀。",
+  keywords: ["序栈门户", "数字自留地", "系统安全", "全栈开发", "知识库", "渗透日志"],
 };
 
 export default function MarketingHomePage() {
   return (
-    <main className="relative min-h-screen bg-background overflow-x-hidden selection:bg-zinc-200 dark:selection:bg-zinc-800">
+    <main className="relative min-h-screen bg-background text-foreground overflow-x-hidden flex flex-col justify-between selection:bg-accent/20 transition-colors duration-300">
       
-      {/* 极简 background grid and gradients */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-noise opacity-[0.015] dark:opacity-[0.02]" />
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/10 dark:bg-blue-500/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-400/10 dark:bg-purple-500/5 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06]" 
-             style={{ 
-               backgroundImage: 'linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px)', 
-               backgroundSize: '40px 40px' 
-             }} />
+      {/* 背景模糊液态流光 - 慢速交织呼吸 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+        <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[70vw] sm:w-[60vw] sm:h-[60vw] bg-blue-500/[0.04] dark:bg-blue-400/[0.06] rounded-full blur-[100px] sm:blur-[120px] bg-glow-blur-1" />
+        <div className="absolute bottom-[-10%] right-[-15%] w-[60vw] h-[60vw] sm:w-[50vw] sm:h-[50vw] bg-violet-500/[0.04] dark:bg-violet-400/[0.06] rounded-full blur-[100px] sm:blur-[120px] bg-glow-blur-2" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 pt-32 pb-24 md:pt-40 md:pb-32 flex flex-col items-center text-center">
+      {/* 顶部悬浮导航栏 */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-background/70 backdrop-blur-xl border-b border-divider/40 shadow-sm shadow-foreground/5 select-none no-print transition-all">
+        <div className="max-w-5xl mx-auto h-full px-6 flex items-center justify-between">
+          
+          {/* 左侧 Brand 标志 - 移除底色层，使用 mix-blend 处理可能的不透明底图 */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain opacity-90 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 mix-blend-multiply dark:mix-blend-screen rounded-sm" />
+            <span className="font-serif text-sm tracking-widest font-bold text-foreground">序栈</span>
+          </Link>
+
+          {/* 右侧胶囊导航 */}
+          <nav className="flex items-center gap-1 sm:gap-2 text-[11px] sm:text-xs font-mono tracking-wider font-medium uppercase">
+            <Link href="/" className="px-3 py-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all">Portal</Link>
+            <Link href="/kb" className="px-3 py-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all">Console</Link>
+            <Link href="/manifesto" className="px-3 py-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all">Manifesto</Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* 主体内容区 */}
+      <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 pt-24 pb-12 sm:pt-28 sm:pb-16 md:pt-32 md:pb-20 flex flex-col items-center text-center my-auto w-full">
         
-        {/* 顶部状态徽章 */}
-        <div className="animate-apple-reveal mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-200/80 dark:border-zinc-800/85 bg-zinc-50/80 dark:bg-zinc-900/80 px-4 py-1.5 text-[11px] font-bold tracking-widest text-zinc-500 uppercase backdrop-blur-md shadow-sm transition-colors cursor-default">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-          </span>
-          序栈 v1.0.0
+        {/* 中央 Logo 专属直接悬浮与纯文字指示灯状态徽章 - Spring 软弹入场 */}
+        <div className="animate-spring-reveal flex flex-col items-center gap-6 mb-10 select-none group/logo">
+          <div className="relative">
+            <div className="absolute inset-0 bg-accent/20 dark:bg-accent/30 rounded-full blur-2xl scale-[1.5] opacity-0 group-hover/logo:opacity-100 transition-opacity duration-700 ease-out" />
+            <img src="/logo.png" alt="Logo" className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 object-contain select-none opacity-90 group-hover/logo:scale-105 transition-transform duration-500 ease-out drop-shadow-md mix-blend-multiply dark:mix-blend-screen rounded-xl" />
+          </div>
+          <div className="group/badge relative inline-flex items-center gap-2.5 text-[10px] sm:text-xs font-mono tracking-widest uppercase cursor-default select-none px-4 py-1.5 rounded-full bg-foreground/[0.03] border border-foreground/[0.08] backdrop-blur-md overflow-hidden transition-all duration-300 hover:bg-foreground/[0.05] hover:border-foreground/[0.15] hover:shadow-lg hover:shadow-foreground/5">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[100%] skew-x-[-15deg] group-hover/badge:animate-shine" />
+            <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-emerald-500"></span>
+            </span>
+            <span className="relative z-10 text-foreground/70 group-hover/badge:text-foreground font-bold transition-colors">序栈 V1.0.0</span>
+          </div>
         </div>
 
-        {/* 核心 Slogan */}
-        <h1 className="animate-apple-reveal delay-100 font-sans text-5xl md:text-7xl lg:text-8xl font-black tracking-tight text-zinc-900 dark:text-white mb-6 leading-[1.05]">
-          秩序之始 <br className="hidden md:block" />
-          <span className="bg-gradient-to-r from-zinc-800 via-zinc-600 to-zinc-400 dark:from-white dark:via-zinc-300 dark:to-zinc-500 bg-clip-text text-transparent pb-2">技术之栈</span>
+        {/* 核心 Slogan - 电影级聚焦显影入场与字距浮动交互 */}
+        <h1 className="animate-text-focus-in delay-100 font-sans text-[2.5rem] leading-[1.1] sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 sm:mb-8 text-foreground drop-shadow-sm text-balance flex items-center justify-center flex-wrap gap-x-2 gap-y-3 sm:gap-y-4">
+          <span className="transition-all duration-700 hover:tracking-normal cursor-default">秩序之始</span> 
+          <span className="mx-1 sm:mx-6 inline-flex items-center justify-center w-8 h-8 sm:w-14 sm:h-14 rounded-full border border-foreground/10 bg-foreground/[0.02] text-xs sm:text-xl text-foreground/40 font-serif font-light backdrop-blur-md select-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 hover:border-foreground/20 hover:text-foreground/70 hover:bg-foreground/[0.04] group cursor-default">
+            <span className="group-hover:rotate-180 transition-transform duration-700 ease-in-out">与</span>
+          </span> 
+          <span className="transition-all duration-700 hover:tracking-normal cursor-default">技术之栈</span>
         </h1>
 
-        {/* 倒计时模块 */}
-        <div className="animate-apple-reveal delay-200 mb-16 flex flex-col items-center">
-          <span className="text-xs font-semibold tracking-widest text-zinc-400 uppercase mb-2">
-            基础设施完工倒计时
-          </span>
-          <Countdown />
-        </div>
+        {/* 简介文案 */}
+        <p className="animate-text-focus-in delay-200 max-w-lg text-sm sm:text-base text-foreground/60 font-normal tracking-wide leading-relaxed mb-8 sm:mb-10 text-balance mx-auto px-2">
+          以工程化思维构建的个人知识库。去除数字世界的碎片噪音，沉淀网络安全、系统底层与现代架构的深度思考与实践准则。
+        </p>
 
-        {/* Bento Grid 文案解构区 */}
-        <div className="animate-apple-reveal delay-300 grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-5xl mb-20 text-left">
-          
-          <div className="group relative overflow-hidden rounded-[24px] border border-zinc-200/60 dark:border-zinc-800/50 bg-white/60 dark:bg-zinc-900/30 p-8 backdrop-blur-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/50 dark:border-zinc-700/50 group-hover:scale-110 transition-transform duration-500">
-              <Shield className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
-            </div>
-            <h3 className="mb-3 text-lg font-bold text-zinc-900 dark:text-white">纯粹数字自留地</h3>
-            <p className="text-sm font-medium leading-relaxed text-zinc-500 dark:text-zinc-400">
-              这里不是大而全的百科，而是一块纯粹的数字自留地。
-            </p>
-          </div>
-
-          <div className="group relative overflow-hidden rounded-[24px] border border-zinc-200/60 dark:border-zinc-800/50 bg-white/60 dark:bg-zinc-900/30 p-8 backdrop-blur-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/50 dark:border-zinc-700/50 group-hover:scale-110 transition-transform duration-500">
-              <Terminal className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
-            </div>
-            <h3 className="mb-3 text-lg font-bold text-zinc-900 dark:text-white">全栈架构推演</h3>
-            <p className="text-sm font-medium leading-relaxed text-zinc-500 dark:text-zinc-400">
-              作为一名信息安全专业的学生，我在这里记录从底层系统、网络渗透到现代全栈架构的真实推演。
-            </p>
-          </div>
-
-          <div className="group relative overflow-hidden rounded-[24px] border border-zinc-200/60 dark:border-zinc-800/50 bg-white/60 dark:bg-zinc-900/30 p-8 backdrop-blur-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/50 dark:border-zinc-700/50 group-hover:scale-110 transition-transform duration-500">
-              <BookOpen className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
-            </div>
-            <h3 className="mb-3 text-lg font-bold text-zinc-900 dark:text-white">只留思考沉淀</h3>
-            <p className="text-sm font-medium leading-relaxed text-zinc-500 dark:text-zinc-400">
-              去除互联网的浮躁噪音，只留白纸黑字的思考与代码沉淀。
-            </p>
-          </div>
-
-        </div>
-
-        {/* 交互按钮区 */}
-        <div className="animate-apple-reveal delay-500 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-16">
+        {/* 交互按钮区 - 提升至首屏关键折叠线之上 */}
+        <div className="animate-spring-reveal delay-300 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto relative mb-12 sm:mb-16">
+          <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full scale-110 animate-pulse pointer-events-none" />
           <Link
             href="/kb"
-            className="group relative flex items-center justify-center gap-2 w-full sm:w-auto overflow-hidden rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-10 py-4 text-[15px] font-bold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-zinc-900/20 dark:shadow-white/10"
+            className="group relative flex items-center justify-center gap-2 w-full sm:w-auto rounded-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-9 py-4 text-sm font-bold tracking-wider hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-all duration-200 select-none overflow-hidden"
           >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 dark:via-black/10 to-transparent -translate-x-full" />
-            <LayoutTemplate className="w-[18px] h-[18px]" />
-            进入知识库
-            <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] skew-x-[-15deg] group-hover:animate-shine" />
+            <LayoutTemplate className="w-4 h-4 stroke-[2] relative z-10" />
+            <span className="relative z-10">进入知识库</span>
+            <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1 relative z-10" />
           </Link>
           
           <Link
             href="/manifesto"
-            className="flex items-center justify-center w-full sm:w-auto rounded-full px-10 py-4 text-[15px] font-bold text-zinc-700 dark:text-zinc-200 border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 backdrop-blur-md transition-all duration-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-[0.98]"
+            className="flex items-center justify-center w-full sm:w-auto rounded-md px-9 py-4 text-sm font-bold tracking-wider text-foreground/80 border-2 border-divider/80 bg-transparent transition-all hover:bg-foreground/5 hover:border-foreground/20 active:scale-[0.98] duration-200 select-none"
           >
             阅读发刊词
           </Link>
         </div>
+
+        {/* 倒计时模块 */}
+        <div className="animate-spring-reveal delay-400 mb-10 sm:mb-14 flex flex-col items-center border-t border-b border-divider/60 py-4 px-2 sm:px-8 w-full max-w-2xl mx-auto">
+          <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-foreground/35 uppercase mb-3 select-none text-center">
+            系统边界构建与初始化同步倒计时
+          </span>
+          <div className="w-full flex justify-center scale-90 sm:scale-100 origin-center">
+            <Countdown />
+          </div>
+        </div>
+
+        {/* Bento Grid - 栅格卡片渐次入场 & 高级悬浮交互 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-0 border-transparent md:border-y md:border-divider md:divide-y-0 md:divide-x divide-divider w-full mb-10 sm:mb-14 text-left">
+          
+          <div className="animate-spring-reveal delay-400 p-6 sm:p-8 md:py-10 md:px-10 group transition-all duration-500 ease-out border border-divider/40 md:border-transparent rounded-2xl md:rounded-none hover:bg-foreground/[0.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/5 cursor-default relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10 mb-5 inline-flex items-center justify-center p-2.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 transition-transform duration-500 cubic-bezier(0.25, 1, 0.5, 1) group-hover:-translate-y-1 group-hover:bg-blue-500/20 group-hover:scale-110 shadow-sm">
+              <Shield className="h-5 w-5 stroke-[2]" />
+            </div>
+            <h3 className="relative z-10 mb-2.5 text-base font-bold text-foreground tracking-tight transition-colors">
+              结构化知识网络
+            </h3>
+            <p className="relative z-10 text-sm leading-relaxed text-foreground/60 font-normal group-hover:text-foreground/80 transition-colors text-pretty">
+              打破碎片化阅读的桎梏。以严密的逻辑与分类标准，构建涵盖安全协议、底层系统到业务架构的系统化知识图谱。
+            </p>
+          </div>
+
+          <div className="animate-spring-reveal delay-500 p-6 sm:p-8 md:py-10 md:px-10 group transition-all duration-500 ease-out border border-divider/40 md:border-transparent rounded-2xl md:rounded-none hover:bg-foreground/[0.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/5 cursor-default relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10 mb-5 inline-flex items-center justify-center p-2.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 transition-transform duration-500 cubic-bezier(0.25, 1, 0.5, 1) group-hover:-translate-y-1 group-hover:bg-indigo-500/20 group-hover:scale-110 shadow-sm">
+              <Terminal className="h-5 w-5 stroke-[2]" />
+            </div>
+            <h3 className="relative z-10 mb-2.5 text-base font-bold text-foreground tracking-tight transition-colors">
+              硬核技术沉淀
+            </h3>
+            <p className="relative z-10 text-sm leading-relaxed text-foreground/60 font-normal group-hover:text-foreground/80 transition-colors text-pretty">
+              拒绝浮于表面的技术搬运。从网络渗透的真实演练到全栈代码的工程落地，只收录经得起反复推敲的实践笔记。
+            </p>
+          </div>
+
+          <div className="animate-spring-reveal delay-600 p-6 sm:p-8 md:py-10 md:px-10 group transition-all duration-500 ease-out border border-divider/40 md:border-transparent rounded-2xl md:rounded-none hover:bg-foreground/[0.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/5 cursor-default relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10 mb-5 inline-flex items-center justify-center p-2.5 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 transition-transform duration-500 cubic-bezier(0.25, 1, 0.5, 1) group-hover:-translate-y-1 group-hover:bg-violet-500/20 group-hover:scale-110 shadow-sm">
+              <BookOpen className="h-5 w-5 stroke-[2]" />
+            </div>
+            <h3 className="relative z-10 mb-2.5 text-base font-bold text-foreground tracking-tight transition-colors">
+              纯粹数字参考源
+            </h3>
+            <p className="relative z-10 text-sm leading-relaxed text-foreground/60 font-normal group-hover:text-foreground/80 transition-colors text-pretty">
+              不受外界算法干扰的独立节点。保持绝对克制、追求技术本质，为未来的系统演进与架构设计提供高纯度的检索参考。
+            </p>
+          </div>
+
+        </div>
+
       </div>
 
-      {/* 底部版权与备案信息 */}
-      <footer className="relative z-10 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/30 dark:bg-zinc-950/30 backdrop-blur-xl animate-apple-reveal delay-700 py-6 px-6 select-none mt-auto">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-500">
+      {/* 底部版权与备案 - 现代官网通透排版 */}
+      <footer className="animate-spring-reveal delay-800 relative z-10 border-t border-divider/40 bg-background/80 backdrop-blur-2xl py-10 md:py-14 px-6 select-none text-xs font-mono tracking-wider font-light text-foreground/50">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-4">
           
-          <div className="flex items-center gap-3 font-medium">
-            <span>© 2026 序栈</span>
-            <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-            <span>保留所有权利</span>
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <Link href="/" className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+              <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain grayscale" />
+              <span className="font-serif text-sm font-bold tracking-widest uppercase text-foreground">Digital Space</span>
+            </Link>
+            <div className="flex items-center gap-2 text-[10px] uppercase opacity-70">
+              <span>© 2026 序栈</span>
+              <span className="w-1 h-1 rounded-full bg-divider" aria-hidden="true" />
+              <span>保留所有权利</span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px]">
-            {/* EdgeOne */}
-            <span className="inline-flex items-center gap-1.5 bg-zinc-100/80 dark:bg-zinc-900/80 px-2.5 py-1 rounded-md">
-              <svg className="w-3.5 h-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              边缘加速平台 <span className="font-bold text-zinc-700 dark:text-zinc-300">EdgeOne</span> 全力驱动
-            </span>
+          <div className="flex flex-col items-center md:items-end gap-5 text-[11px]">
+            <div className="flex items-center gap-5 uppercase font-medium tracking-widest">
+              <Link href="/kb" className="hover:text-foreground transition-colors">Console</Link>
+              <Link href="/manifesto" className="hover:text-foreground transition-colors">Manifesto</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">RSS</Link>
+            </div>
+            
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-5 gap-y-3 opacity-80">
+              {/* EdgeOne */}
+              <span className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                EdgeOne 驱动
+              </span>
 
-            {/* ICP 备案 */}
-            <a 
-              href="https://beian.miit.gov.cn/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-              </svg>
-              鄂ICP备2025157857号
-            </a>
+              {/* ICP 备案 */}
+              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                鄂ICP备2025157857号
+              </a>
 
-            <span className="hidden sm:inline w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-
-            {/* 公网安备 */}
-            <a 
-              href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42018502008592" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              鄂公网安备 42018502008592号
-            </a>
+              {/* 公网安备 */}
+              <a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42018502008592" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                鄂公网安备 42018502008592号
+              </a>
+            </div>
           </div>
-
         </div>
       </footer>
     </main>

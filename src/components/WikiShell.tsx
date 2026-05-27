@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Menu,
   Search as SearchIcon,
@@ -25,6 +26,7 @@ interface WikiShellProps {
 }
 
 export default function WikiShell({ tree, children }: WikiShellProps) {
+  const router = useRouter();
   const {
     isMobileSidebarOpen,
     setIsMobileSidebarOpen,
@@ -58,7 +60,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
         <button
           id="mobile-sidebar-toggle"
           onClick={() => setIsMobileSidebarOpen(true)}
-          className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/60 transition-colors focus:outline-none"
+          className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none"
           aria-label="Open directory"
         >
           <Menu size={18} />
@@ -66,7 +68,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
 
         <Link
           href="/kb"
-          className="flex items-center gap-2 font-serif text-base tracking-tight font-medium text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+          className="flex items-center gap-2 font-serif text-base tracking-tight font-medium text-foreground hover:text-foreground/75 transition-colors"
         >
           <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
           <span>Knowledge Base</span>
@@ -76,7 +78,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
           <button
             id="mobile-search-toggle"
             onClick={() => setIsSearchOpen(true)}
-            className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/60 transition-colors focus:outline-none"
+            className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none"
             aria-label="Search"
           >
             <SearchIcon size={18} />
@@ -86,7 +88,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
             <button
               id="mobile-toc-toggle"
               onClick={() => setIsMobileTOCOpen(true)}
-              className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/60 transition-colors focus:outline-none"
+              className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none"
               aria-label="Open table of contents"
             >
               <List size={18} />
@@ -111,14 +113,14 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
             <div className="flex items-center justify-between gap-2">
               <Link
                 href="/kb"
-                className="flex items-center gap-2 font-serif text-lg tracking-tight font-medium text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                className="flex items-center gap-2 font-serif text-lg tracking-tight font-medium text-foreground hover:text-foreground/75 transition-colors"
               >
                 <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
                 <span>Knowledge Base</span>
               </Link>
               <button
                 onClick={() => handleToggleSidebar(true)}
-                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
                 title="Collapse Sidebar (Ctrl+[)"
               >
                 <PanelLeftClose size={16} />
@@ -129,7 +131,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
             <button
               id="desktop-search-btn"
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center justify-between gap-2 px-3 py-1.5 border border-divider text-left text-xs text-zinc-400 hover:text-zinc-700 hover:border-zinc-400 dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:border-zinc-600 transition-colors focus:outline-none mt-2 cursor-pointer w-full"
+              className="flex items-center justify-between gap-2 px-3 py-1.5 border border-divider text-left text-xs text-foreground/40 hover:text-foreground hover:border-foreground/40 transition-colors focus:outline-none mt-2 cursor-pointer w-full"
             >
               <span className="flex items-center gap-1.5">
                 <SearchIcon size={12} />
@@ -148,7 +150,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
           <div className="mt-auto py-4 border-t border-divider/50 flex items-center justify-between gap-2 shrink-0">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors font-mono cursor-pointer"
+              className="flex items-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors font-mono cursor-pointer"
               title="Return to Portal"
             >
               <Home size={14} />
@@ -158,30 +160,36 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
         </aside>
 
         {/* 中间正文区 */}
-        <main className="flex-1 min-w-0 flex justify-center py-6 md:py-10 px-0 md:px-8 lg:px-12">
-          <div className="w-full max-w-3xl min-h-full flex flex-col">
+        <main className="flex-1 min-w-0 flex justify-center py-4 md:py-6 px-0 sm:px-4 md:px-6">
+          <div className="w-full max-w-4xl min-h-full flex flex-col">
             
             {/* 历史导航工具条 */}
             <div className="hidden md:flex items-center gap-2 mb-4 shrink-0 select-none">
               {isSidebarCollapsed && (
                 <button
                   onClick={() => handleToggleSidebar(false)}
-                  className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer mr-1"
+                  className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer mr-1"
                   title="Expand Sidebar"
                 >
                   <PanelLeft size={16} />
                 </button>
               )}
               <button
-                onClick={() => window.history.back()}
-                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                onClick={() => {
+                  if (document.referrer.includes(window.location.host)) {
+                    window.history.back();
+                  } else {
+                    router.push('/kb');
+                  }
+                }}
+                className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
                 title="Go Back"
               >
                 <ArrowLeft size={15} />
               </button>
               <button
                 onClick={() => window.history.forward()}
-                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
                 title="Go Forward"
               >
                 <ArrowRight size={15} />

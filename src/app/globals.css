@@ -4,27 +4,38 @@
 
 @theme {
   --font-serif: var(--font-serif-lora), Georgia, serif;
-  --font-sans: var(--font-sans-inter), system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-sans-inter), "Inter", "Inter Online", "Source Han Sans SC", "Source Han Sans CN", "Noto Sans SC", "Source Han Sans SC Online", system-ui, -apple-system, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-divider: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
 }
 
 :root {
-  /* 苹果风浅色模式：冷灰背景，深灰黑文字 */
-  --background: #f5f5f7; 
-  --foreground: #1d1d1f;
-  --border: #d2d2d7;
-  --accent: #0071e3;
+  /* 浅色模式 — 现代官网质感 */
+  --background: #fcfcfd;
+  --foreground: #0f172a;
+  --border: #e2e8f0;
+  --accent: #2563eb;
+  --muted: #f1f5f9;
+  --body-font-weight: 400;
+  /* 悬浮控件定位 */
+  --layout-floating-mobile-right: max(0.8rem, calc(env(safe-area-inset-right, 0px) + 0.6rem));
+  --layout-floating-mobile-bottom: max(1.2rem, calc(env(safe-area-inset-bottom, 0px) + 0.85rem));
+  --layout-floating-right: 1.2rem;
+  --layout-floating-bottom: 1.8rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* 苹果风深色模式：纯黑背景，极浅灰文字 */
-    --background: #000000;
-    --foreground: #f5f5f7;
-    --border: #424245;
-    --accent: #2997ff;
+    /* 深色模式 — 科技深邃质感 */
+    --background: #09090b;
+    --foreground: #f8fafc;
+    --border: #27272a;
+    --accent: #3b82f6;
+    --muted: rgba(255, 255, 255, 0.05);
+    --body-font-weight: 350;
   }
 }
 
@@ -32,7 +43,10 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   transition: background-color 0.5s ease, color 0.5s ease;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-family: var(--font-sans);
+  font-weight: var(--body-font-weight);
+  letter-spacing: 0.01em;
+  font-feature-settings: "liga" 1, "calt" 1, "cv02", "cv03", "cv04", "cv11";
   /* 开启平滑滚动 */
   scroll-behavior: smooth;
   /* 优化字体渲染，让文字看起来更锐利、更高级 */
@@ -59,7 +73,7 @@ body {
   outline-offset: 2px;
 }
 
-/* ─── 苹果级丝滑入场动画 (核心交互打磨) ──────────── */
+/* ─── 苹果级丝滑入场与阻尼回弹动画 ──────────── */
 @keyframes apple-reveal {
   0% { 
     opacity: 0; 
@@ -74,9 +88,88 @@ body {
 }
 
 .animate-apple-reveal {
-  /* 使用强阻尼的贝塞尔曲线，前段极快，后段极其平缓，呈现高级滞空感 */
   animation: apple-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0; /* 初始隐藏，防止闪烁 */
+  opacity: 0;
+}
+
+@keyframes spring-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-spring-reveal {
+  /* 阻尼回弹效果 */
+  animation: spring-reveal 1.35s cubic-bezier(0.23, 1.25, 0.46, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes text-focus-in {
+  0% {
+    filter: blur(16px);
+    opacity: 0;
+    letter-spacing: -0.1em;
+    transform: scale(0.97) translateY(8px);
+  }
+  100% {
+    filter: blur(0px);
+    opacity: 1;
+    letter-spacing: normal;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-text-focus-in {
+  animation: text-focus-in 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes liquid-glow-1 {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(4%, 6%) scale(1.08) rotate(120deg); }
+  66% { transform: translate(-3%, -4%) scale(0.96) rotate(240deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+}
+
+@keyframes liquid-glow-2 {
+  0% { transform: translate(0, 0) scale(1.04) rotate(0deg); }
+  50% { transform: translate(-5%, 4%) scale(0.92) rotate(-180deg); }
+  100% { transform: translate(0, 0) scale(1.04) rotate(-360deg); }
+}
+
+.bg-glow-blur-1 {
+  animation: liquid-glow-1 25s infinite alternate ease-in-out;
+}
+
+.bg-glow-blur-2 {
+  animation: liquid-glow-2 30s infinite alternate ease-in-out;
+}
+
+@keyframes shimmer-text {
+  0% { background-position: -200% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg, 
+    var(--foreground) 35%, 
+    var(--accent) 50%, 
+    var(--foreground) 65%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-text 10s linear infinite;
+  display: inline-block;
 }
 
 /* 动画延迟，用于错落有致的排版 */
@@ -85,6 +178,9 @@ body {
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
 
 /* 保留你原有的其他动画类，以免影响原 Demo 页面 */
 @keyframes fade-in {
@@ -128,4 +224,288 @@ body {
 .dark .glass-card:hover {
   border-color: rgba(143, 191, 218, 0.2);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Article Detail 排版体系 (学习 blog typography) ──── */
+
+.article-detail {
+  font-family: var(--font-sans);
+  font-size: 0.99rem;
+  line-height: 1.7;
+  letter-spacing: 0.004em;
+  font-weight: var(--body-font-weight);
+  text-align: justify;
+  text-justify: inter-character;
+  text-wrap: pretty;
+}
+
+.article-detail :is(p, ul, ol, blockquote) {
+  margin-block: 0.72em;
+}
+
+.article-detail :is(li, figcaption) {
+  line-height: 1.63;
+}
+
+.article-detail li + li {
+  margin-top: 0.18em;
+}
+
+/* ── 标题 ──────────────────────────────────────────── */
+
+.article-detail h2 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1.28rem;
+  line-height: 1.28;
+  margin-top: 1.2em;
+  margin-bottom: 0.44em;
+}
+
+.article-detail h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1.12rem;
+  line-height: 1.32;
+  margin-top: 1em;
+  margin-bottom: 0.34em;
+}
+
+.article-detail h4 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1.36;
+  margin-top: 0.85em;
+  margin-bottom: 0.22em;
+}
+
+.article-detail :is(h2, h3, h4, h5, h6) {
+  scroll-margin-top: 5rem;
+}
+
+/* ── 引用块 ────────────────────────────────────────── */
+
+.article-detail blockquote {
+  font-size: 1rem;
+  line-height: 1.58;
+  letter-spacing: 0.01em;
+  font-weight: 430;
+  padding: 0.62rem 0.82rem;
+  margin-block: 0.95rem;
+  border-radius: 0 0.35rem 0.35rem 0;
+}
+
+.article-detail blockquote > :is(p, ul, ol) {
+  margin-block: 0 !important;
+}
+
+.article-detail blockquote > :not(:first-child) {
+  margin-top: 0.35em;
+}
+
+/* ── 代码块 ────────────────────────────────────────── */
+
+.article-detail pre {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 0.78rem 0.92rem;
+  border-radius: 0.5rem;
+}
+
+.article-detail :not(pre) > code {
+  white-space: nowrap;
+}
+
+/* ── 图片 ──────────────────────────────────────────── */
+
+.article-detail img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  transition: opacity 0.2s ease;
+}
+
+/* ── 分隔线 ────────────────────────────────────────── */
+
+.article-detail hr {
+  margin-block: 1rem;
+}
+
+.article-detail hr + :is(h2, h3, h4) {
+  margin-top: 0.72rem;
+}
+
+/* ── Mark / Kbd ────────────────────────────────────── */
+
+.article-detail mark {
+  padding: 0.05em 0.28em;
+  border-radius: 0.3rem;
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  color: var(--foreground);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  white-space: nowrap;
+}
+
+.article-detail kbd {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0.05em 0.35em;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: var(--muted);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 12%, transparent);
+  color: var(--foreground);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.82em;
+  line-height: 1.2;
+  vertical-align: baseline;
+}
+
+/* ── 表格 ──────────────────────────────────────────── */
+
+.article-detail table {
+  margin-inline: auto;
+  width: auto;
+  max-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.article-detail th {
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.article-detail td {
+  text-align: left;
+}
+
+.article-detail th,
+.article-detail td {
+  padding: 0.4em 0.58em;
+}
+
+.article-detail tr th:first-child,
+.article-detail tr td:first-child {
+  padding-left: 0.76em !important;
+}
+
+.article-detail tr th:last-child,
+.article-detail tr td:last-child {
+  padding-right: 0.76em !important;
+}
+
+/* ── 桌面端 (≥640px) ──────────────────────────────── */
+
+@media (min-width: 640px) {
+  .article-detail {
+    font-size: 0.99rem;
+    line-height: 1.72;
+  }
+
+  .article-detail :is(p, ul, ol, blockquote) {
+    margin-block: 0.72em;
+  }
+
+  .article-detail h2 {
+    font-size: 1.34rem;
+    margin-top: 1.28em;
+  }
+
+  .article-detail h3 {
+    font-size: 1.16rem;
+    margin-top: 1.06em;
+  }
+
+  .article-detail h4 {
+    font-size: 1.05rem;
+    margin-top: 0.88em;
+  }
+}
+
+/* ── 移动端 (<640px) ──────────────────────────────── */
+
+@media (max-width: 639px) {
+  .article-detail {
+    font-size: 1.05rem;
+    line-height: 1.8;
+  }
+
+  .article-detail :is(h2, h3, h4) {
+    text-wrap: pretty;
+  }
+
+  .article-detail :is(p, ul, ol, blockquote) {
+    margin-block: 0.58em;
+  }
+
+  .article-detail :is(li, figcaption) {
+    line-height: 1.56;
+  }
+
+  .article-detail h2 {
+    font-size: 1.12rem !important;
+    margin-top: 0.92rem;
+    margin-bottom: 0.28rem;
+  }
+
+  .article-detail h3 {
+    font-size: 1.01rem !important;
+    margin-top: 0.78rem;
+    margin-bottom: 0.22rem;
+  }
+
+  .article-detail h4 {
+    font-size: 0.95rem !important;
+    margin-top: 0.68rem;
+    margin-bottom: 0.18rem;
+  }
+
+  .article-detail pre {
+    font-size: 0.76rem;
+    line-height: 1.42;
+    padding: 0.58rem 0.62rem !important;
+    margin-inline: -0.1rem;
+    border-radius: 0.4rem;
+  }
+
+  .article-detail blockquote {
+    font-size: 0.93em;
+    padding: 0.42rem 0.58rem;
+    margin-block: 0.72rem;
+  }
+
+  .article-detail hr {
+    margin-block: 0.8rem;
+  }
+
+  .article-detail hr + :is(h2, h3, h4) {
+    margin-top: 0.58rem;
+  }
+
+  .article-detail th,
+  .article-detail td {
+    padding: 0.32em 0.42em;
+  }
+
+  .article-detail tr th:first-child,
+  .article-detail tr td:first-child {
+    padding-left: 0.56em !important;
+  }
+
+  .article-detail img {
+    border-radius: 0.35rem;
+  }
+}
+
+/* ── 移动端浮动控件间距 ────────────────────────────── */
+
+@media (max-width: 640px) {
+  :root {
+    --layout-page-gutter: 0.75rem;
+  }
 }

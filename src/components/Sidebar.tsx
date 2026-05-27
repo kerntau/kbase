@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -25,6 +25,11 @@ function normalizePath(p: string) {
 export default function Sidebar({ tree }: SidebarProps) {
   const pathname = usePathname();
   const { expandedNodes, toggleNode, expandNode, setIsMobileSidebarOpen } = useUI();
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(navigator.userAgent.toUpperCase().indexOf("MAC") >= 0);
+  }, []);
 
   // 当前路径变化时，自动展开所有祖先文件夹
   useEffect(() => {
@@ -60,13 +65,13 @@ export default function Sidebar({ tree }: SidebarProps) {
             <button
               onClick={() => toggleNode(node.path)}
               style={indent}
-              className="flex w-full items-center gap-2 py-1.5 pr-2 text-left text-sm rounded-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 select-none"
+              className="flex w-full items-center gap-2 py-1.5 pr-2 text-left text-sm rounded-sm text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 select-none"
               aria-expanded={isExpanded}
             >
-              <span className="text-zinc-400 dark:text-zinc-500 shrink-0 transition-transform duration-200" style={{ transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>
+              <span className="text-foreground/40 shrink-0 transition-transform duration-200" style={{ transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>
                 <ChevronDown size={13} />
               </span>
-              <span className="text-zinc-400 dark:text-zinc-500 shrink-0">
+              <span className="text-foreground/40 shrink-0">
                 {isExpanded ? <FolderOpen size={13} /> : <Folder size={13} />}
               </span>
               <span className="font-medium tracking-tight truncate">{node.title}</span>
@@ -74,11 +79,13 @@ export default function Sidebar({ tree }: SidebarProps) {
 
             {/* 展开内容带高度过渡 */}
             <div
-              className="overflow-hidden transition-all duration-200 ease-out"
-              style={{ maxHeight: isExpanded ? "9999px" : "0px", opacity: isExpanded ? 1 : 0 }}
+              className="grid transition-all duration-300 ease-in-out"
+              style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr", opacity: isExpanded ? 1 : 0 }}
             >
-              <div className="flex flex-col relative before:absolute before:left-[14px] before:top-0 before:bottom-0 before:w-px before:bg-zinc-200/60 dark:before:bg-zinc-800/60">
-                {renderTree(node.children || [], depth + 1)}
+              <div className="overflow-hidden">
+                <div className="flex flex-col relative before:absolute before:left-[14px] before:top-0 before:bottom-0 before:w-px before:bg-divider/50">
+                  {renderTree(node.children || [], depth + 1)}
+                </div>
               </div>
             </div>
           </div>
@@ -92,19 +99,19 @@ export default function Sidebar({ tree }: SidebarProps) {
             href={node.path}
             onClick={() => setIsMobileSidebarOpen(false)}
             style={indent}
-            className={`flex items-center gap-2 py-1.5 pr-2 text-sm rounded-sm transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${
+            className={`flex items-center gap-2 py-1.5 pr-2 text-sm rounded-sm transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 ${
               isActive
-                ? "font-semibold text-zinc-950 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800"
-                : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
+                ? "font-semibold text-foreground bg-foreground/5 dark:bg-foreground/10"
+                : "text-foreground/60 hover:text-foreground hover:bg-foreground/5"
             }`}
             aria-current={isActive ? "page" : undefined}
           >
-            <span className={`shrink-0 ${isActive ? "text-zinc-800 dark:text-zinc-200" : "text-zinc-400 dark:text-zinc-500"}`}>
+            <span className={`shrink-0 ${isActive ? "text-foreground/80" : "text-foreground/40"}`}>
               <FileText size={13} />
             </span>
             <span className="truncate leading-tight">{node.title}</span>
             {isActive && (
-              <span className="ml-auto w-1 h-1 rounded-full bg-zinc-800 dark:bg-zinc-200 shrink-0" />
+              <span className="ml-auto w-1 h-1 rounded-full bg-foreground/80 shrink-0" />
             )}
           </Link>
         );
@@ -115,7 +122,7 @@ export default function Sidebar({ tree }: SidebarProps) {
   return (
     <nav className="w-full flex flex-col gap-0.5 py-4 select-none" aria-label="Document tree">
       {tree.length === 0 ? (
-        <p className="text-sm text-zinc-400 dark:text-zinc-600 px-2 italic">
+        <p className="text-sm text-foreground/40 px-2 italic">
           No documents found
         </p>
       ) : (

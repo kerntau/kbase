@@ -24,11 +24,17 @@ export default function MobileDrawer({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      document.documentElement.style.touchAction = "none";
+      document.body.style.touchAction = "none";
     } else {
       document.body.style.overflow = "";
+      document.documentElement.style.touchAction = "";
+      document.body.style.touchAction = "";
     }
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.style.touchAction = "";
+      document.body.style.touchAction = "";
     };
   }, [isOpen]);
 
@@ -51,23 +57,23 @@ export default function MobileDrawer({
     <div className="fixed inset-0 z-50 flex no-print">
       {/* 遮罩层 */}
       <div
-        className="absolute inset-0 bg-zinc-950/70 dark:bg-black/80 animate-fade-in-overlay"
+        className="absolute inset-0 bg-black/45 dark:bg-black/70 animate-fade-in-overlay"
         onClick={onClose}
       />
 
       {/* 抽屉面板 */}
       <div
         ref={panelRef}
-        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-[#f5f5f7] dark:bg-black border-divider flex flex-col p-5 shadow-xl ${positionClass} ${slideClass}`}
+        className={`absolute top-0 bottom-0 w-80 max-w-[85vw] bg-background/85 backdrop-blur-xl border-divider flex flex-col p-5 shadow-xl ${positionClass} ${slideClass}`}
       >
         {/* 头部区 */}
         <div className="flex items-center justify-between border-b border-divider pb-3 mb-2">
-          <span className="text-xs font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase">
+          <span className="text-xs font-semibold tracking-wider text-foreground/45 uppercase">
             {title}
           </span>
           <button
             onClick={onClose}
-            className="p-1 -mr-1 rounded-md text-zinc-400 hover:text-zinc-900 transition-colors focus:outline-none dark:text-zinc-500 dark:hover:text-zinc-100"
+            className="p-1 -mr-1 rounded-md text-foreground/45 hover:text-foreground transition-colors focus:outline-none"
             aria-label="Close"
           >
             <X size={16} />

@@ -126,21 +126,21 @@ export default function Search() {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] px-4 no-print animate-fade-in">
       {/* 遮罩 */}
       <div
-        className="absolute inset-0 bg-zinc-950/70 dark:bg-black/80"
+        className="absolute inset-0 bg-black/45 dark:bg-black/70"
         onClick={() => setIsSearchOpen(false)}
       />
 
       {/* 搜索面板 */}
       <div
         onKeyDown={handleKeyDown}
-        className="relative w-full max-w-xl bg-[#f5f5f7] dark:bg-black border border-divider shadow-2xl flex flex-col overflow-hidden max-h-[62vh]"
+        className="relative w-full max-w-xl bg-background/80 backdrop-blur-xl border border-divider shadow-2xl flex flex-col overflow-hidden max-h-[62vh] rounded-2xl"
         role="dialog"
         aria-modal="true"
         aria-label="Search"
       >
         {/* 输入区 */}
         <div className="flex items-center gap-3 px-4 border-b border-divider h-12 shrink-0">
-          <SearchIcon size={15} className="text-zinc-400 dark:text-zinc-500 shrink-0" />
+          <SearchIcon size={15} className="text-foreground/40 shrink-0" />
           <input
             ref={inputRef}
             id="search-input"
@@ -148,14 +148,14 @@ export default function Search() {
             placeholder="Search documents…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent border-0 text-sm focus:outline-none text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 dark:placeholder-zinc-500"
+            className="flex-1 bg-transparent border-0 text-sm focus:outline-none text-foreground placeholder-foreground/35"
             autoComplete="off"
           />
           <div className="flex items-center gap-2 shrink-0">
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+                className="p-1 rounded text-foreground/40 hover:text-foreground transition-colors"
                 aria-label="Clear"
               >
                 <X size={13} />
@@ -163,7 +163,7 @@ export default function Search() {
             )}
             <button
               onClick={() => setIsSearchOpen(false)}
-              className="text-[10px] text-zinc-400 dark:text-zinc-500 border border-divider px-1.5 py-0.5 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+              className="text-[10px] text-foreground/40 border border-divider px-1.5 py-0.5 hover:text-foreground transition-colors"
             >
               ESC
             </button>
@@ -174,29 +174,29 @@ export default function Search() {
         <div className="flex-1 overflow-y-auto p-2">
           {indexState === "error" ? (
             <div className="py-8 text-center flex flex-col items-center gap-2">
-              <AlertCircle size={18} className="text-zinc-400" />
-              <p className="text-sm text-zinc-400 dark:text-zinc-500">
+              <AlertCircle size={18} className="text-foreground/45" />
+              <p className="text-sm text-foreground/45">
                 Search index not available.
               </p>
-              <p className="text-xs text-zinc-400/70 dark:text-zinc-600">
-                Run <code className="font-mono bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5">npm run build</code> to generate it.
+              <p className="text-xs text-foreground/35">
+                Run <code className="font-mono bg-muted px-1 py-0.5">npm run build</code> to generate it.
               </p>
             </div>
           ) : indexState === "loading" ? (
-            <div className="py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
+            <div className="py-8 text-center text-sm text-foreground/45">
               Loading index…
             </div>
           ) : query.trim() === "" ? (
-            <div className="py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
+            <div className="py-8 text-center text-sm text-foreground/45">
               Type to search — full-text, offline.
               {allItems.length > 0 && (
-                <span className="block mt-1 text-xs text-zinc-400/60 dark:text-zinc-600">
+                <span className="block mt-1 text-xs text-foreground/35">
                   {allItems.length} documents indexed
                 </span>
               )}
             </div>
           ) : results.length === 0 ? (
-            <div className="py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
+            <div className="py-8 text-center text-sm text-foreground/45">
               No results for &ldquo;{query}&rdquo;
             </div>
           ) : (
@@ -210,16 +210,16 @@ export default function Search() {
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`flex items-start gap-3 w-full text-left px-3 py-2.5 transition-colors rounded-sm ${
                       isSelected
-                        ? "bg-zinc-100 dark:bg-zinc-850"
-                        : "hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                        ? "bg-foreground/5 dark:bg-foreground/10"
+                        : "hover:bg-foreground/[0.02] dark:hover:bg-foreground/[0.05]"
                     }`}
                   >
                     <FileText
                       size={14}
                       className={`mt-0.5 shrink-0 ${
                         isSelected
-                          ? "text-zinc-800 dark:text-zinc-200"
-                          : "text-zinc-400 dark:text-zinc-500"
+                          ? "text-foreground/80"
+                          : "text-foreground/40"
                       }`}
                     />
                     <div className="flex-1 min-w-0">
@@ -227,26 +227,26 @@ export default function Search() {
                         <span
                           className={`text-sm font-medium truncate ${
                             isSelected
-                              ? "text-zinc-950 dark:text-zinc-50"
-                              : "text-zinc-700 dark:text-zinc-300"
+                              ? "text-foreground"
+                              : "text-foreground/75"
                           }`}
                         >
                           {item.title}
                         </span>
                         {item.category && (
-                          <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-400 dark:text-zinc-500 px-1.5 py-0.5 border border-zinc-200 dark:border-zinc-800 shrink-0">
+                          <span className="text-[10px] uppercase tracking-wider font-semibold text-foreground/40 px-1.5 py-0.5 border border-divider shrink-0">
                             {item.category}
                           </span>
                         )}
                       </div>
                       {item.description && (
-                        <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate mt-0.5">
+                        <p className="text-xs text-foreground/40 truncate mt-0.5">
                           {item.description}
                         </p>
                       )}
                     </div>
                     {isSelected && (
-                      <span className="text-[10px] text-zinc-400 dark:text-zinc-500 flex items-center gap-0.5 self-center shrink-0">
+                      <span className="text-[10px] text-foreground/40 flex items-center gap-0.5 self-center shrink-0">
                         <CornerDownLeft size={10} />
                       </span>
                     )}
@@ -259,7 +259,7 @@ export default function Search() {
 
         {/* 底部快捷键提示 */}
         {results.length > 0 && (
-          <div className="border-t border-divider px-4 py-2 flex items-center gap-4 text-[10px] text-zinc-400 dark:text-zinc-600 shrink-0">
+          <div className="border-t border-divider px-4 py-2 flex items-center gap-4 text-[10px] text-foreground/40 shrink-0">
             <span className="flex items-center gap-1"><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
             <span className="flex items-center gap-1"><kbd>↵</kbd> open</span>
             <span className="flex items-center gap-1"><kbd>ESC</kbd> close</span>

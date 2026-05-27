@@ -93,9 +93,20 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
     const timer1 = setTimeout(handleScroll, 100);
     const timer2 = setTimeout(handleScroll, 400);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", onScroll);
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
@@ -121,10 +132,10 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
 
   return (
     <div className="w-full flex flex-col py-4 select-none">
-      <h3 className="text-[10px] font-bold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase px-2 mb-3">
+      <h3 className="text-[10px] font-bold tracking-widest text-foreground/45 uppercase px-2 mb-3">
         On This Page
       </h3>
-      <div className="flex flex-col gap-0.5 border-l border-zinc-200/60 dark:border-zinc-800/60">
+      <div className="flex flex-col gap-0.5 border-l border-divider">
         {flatToc.map((item) => {
           const isActive = activeId === item.url;
           const pl =
@@ -137,8 +148,8 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
               onClick={(e) => handleLinkClick(e, item.url)}
               className={`-ml-px border-l text-xs py-0.5 pr-2 transition-all duration-150 focus:outline-none ${pl} ${
                 isActive
-                  ? "border-zinc-800 dark:border-zinc-200 font-semibold text-zinc-900 dark:text-zinc-50"
-                  : "border-transparent text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700"
+                  ? "border-foreground font-semibold text-foreground"
+                  : "border-transparent text-foreground/45 hover:text-foreground hover:border-divider"
               }`}
             >
               <span className="block truncate leading-snug">{item.title}</span>
