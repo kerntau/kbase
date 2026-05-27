@@ -102,6 +102,7 @@ export default function Search() {
         const englishWords = str.replace(cjkRegex, " ").split(/[\s\.\-\/_]+/).filter(Boolean);
         const cjkChars = str.match(cjkRegex) || [];
         return [...englishWords, ...cjkChars];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       }) as any
     });
 

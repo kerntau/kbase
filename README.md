@@ -1,112 +1,139 @@
-# 序栈 | Digital Space
+# 序栈 · XSTACK
 
-> 秩序之始与技术之栈。
-> 一个专注于网络安全、系统底层与现代全栈架构推演的数字自留地。
-> 去除网络浮躁，留存白纸黑字的思考与代码沉淀。
+<p align="center">
+  <a href="https://nextjs.org">
+    <img src="https://img.shields.io/badge/Next.js-16.2.6--Turbopack-000000?style=flat-square&logo=next.js" alt="Next.js">
+  </a>
+  <a href="https://react.dev">
+    <img src="https://img.shields.io/badge/React-19.2.4-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React">
+  </a>
+  <a href="https://www.typescriptlang.org">
+    <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript" alt="TypeScript">
+  </a>
+  <a href="https://tailwindcss.com">
+    <img src="https://img.shields.io/badge/Tailwind_CSS-4.0-06B6D4?style=flat-square&logo=tailwindcss" alt="Tailwind CSS">
+  </a>
+  <a href="https://velite.js.org">
+    <img src="https://img.shields.io/badge/Velite-0.3.1-FF5A1F?style=flat-square" alt="Velite">
+  </a>
+</p>
 
 ---
 
-## 核心设计特性
+## 📖 简介
 
-| 维度 | 设计实现 | 业务价值 |
-| :--- | :--- | :--- |
-| 视觉风格 | 现代暗色微光质感与经典衬线字体排版结合，自适应移动端布局 | 保证长文阅读的沉浸感与工程品质感 |
-| 内容引擎 | 基于 Velite 将 Markdown/MDX 静态编译为强类型数据 | 提供零运行时代价的页面内容转换与极速加载 |
-| 全文检索 | 利用 FlexSearch 在构建期对内容分词，生成客户端离线索引 | 实现亚毫秒级的前端全文检索，无需依赖外部搜索引擎服务 |
-| 交互细节 | 包含精确到毫秒的渐变倒计时、无级收折侧边栏以及平滑微动画 | 提升交互反馈的响应性与愉悦度 |
+**序栈（XStack）** 是一个专注于**计算机底层原理、系统安全对抗与现代架构演进**的轻量级技术知识库。
+
+本站致力于抛弃互联网浮躁的碎片化信息，以理性、中性的视角，留存最严谨的白纸黑字逻辑推演与工程代码沉淀。系统采用全静态导出（SSG）架构，确保极致的响应速度、高品质的排版设计和沉浸式的阅读体验。
 
 ---
 
-## 技术架构
+## ⚡ 核心设计与交互特性
 
-系统采用全静态化导出架构，整体数据流向如下所示：
+### 🔍 亚毫秒级中文全文检索
+- **中英混合分词**：基于 `FlexSearch` 定制研发了中文单字与英文单词混合切分的高性能分词算法，大幅提升中文短语的召回率与准确度。
+- **120ms 输入防抖**：对高频输入流实施防抖处理，避免频繁渲染阻塞浏览器主线程。
+- **关键词高亮与滚动锚定**：采用 `mark` 动态渲染匹配文本，支持键盘 `↑` `↓` 键平滑滚动聚焦选项。
+
+### 📚 学术级极致排版系统
+- **知性配色体系**：深度融合明快温润的浅蓝（Teal/Cyan）色系，支持深/浅色模式自适应切换。
+- **字体合成保护**：应用 `font-synthesis: style` 属性，强制禁止浏览器低质量合成非原生中文字体，同时解决了 SVG 图标被浏览器强行加粗变形的排版隐患。
+- **呼吸感版心控制**：段落行高收紧至 `1.72`，标题字号根据排版密度进行黄金比例缩减，在大屏下正文版心严格控制在 `820px`，呈现严肃且舒适的阅读质感。
+
+### 🖱️ 沉浸式阅读交互
+- **左右方向键导航**：在非输入状态下，可直接通过键盘 `←` 和 `→` 方向键，无缝且顺畅地在“上一篇”与“下一篇”技术推演之间进行翻页。
+- **防抖大纲追踪 (TOC)**：具备防抖锁定的 TOC 滚动定位。点击大纲锚点时自动加锁，过滤掉跳转中间过程的干扰高亮；在组件销毁时提供完整的垃圾清理，避免 scrollend 内存残留。
+- **极简底部导航**：重构并精简了底部的导航卡片，大幅压缩物理高度，在第一篇或最后一篇时自动在移动端隐去空白虚线框，释放小屏高度空间。
+
+### 🎨 工业级视觉细节
+- **高通透磨砂玻璃**：官网 Bento 栅格及侧边栏采用低圆角、高通透度的磨砂玻璃效果，搭配中心向外渐隐的 `40px` 细网格工业背景。
+- **阻尼感物理特效**：交互按钮与看板链接在悬停时支持 `will-change` 硬件加速，伴有浅蓝色外发光、小图标弹性旋转及 `1px` 跟手平移。
+- **扩展 MDX 渲染**：支持 GitHub Alerts (Note, Tip, Warning...) 解析渲染；拦截原生 `details/summary` 实现平滑的展开折叠卡片；自研基于毛玻璃背景的零依赖图片放大灯箱 (Lightbox)。
+
+---
+
+## 🛠️ 技术架构
+
+系统采用纯静态构建管线，实现了从 markdown 源码到全量静态托管服务的极简流转：
 
 ```text
-Markdown 源码 (content/)
-       │
-       ▼
-Velite 静态编译 (.velite/) ───► 生成 HTML、TOC、Metadata
-       │
-       ▼
-检索索引构建脚本 (scripts/) ───► FlexSearch 序列化索引 (public/search-index.json)
-       │
-       ▼
-Next.js 静态导出 (out/) ─────► 纯静态资源部署 (HTML/CSS/JS)
+  Markdown 源码 (content/)
+         │
+         ▼
+  Velite 静态解析 (.velite/) ────► 编译生成文档 HTML、TOC、元数据
+         │
+         ▼
+  检索索引脚本 (scripts/) ──────► 抽取高频词生成 FlexSearch 序列化索引
+         │
+         ▼
+  Next.js 编译导出 (out/) ──────► 输出纯静态资源，支持任何静态托管平台
 ```
-
-### 核心技术栈
-
-- 基础框架：Next.js 16.2.6 (App Router)
-- 视图逻辑：React 19.2.4 + TypeScript
-- 样式系统：Tailwind CSS 4.0
-- 内容管理：Velite 0.3.1
-- 全文检索：FlexSearch 0.8.212
 
 ---
 
-## 项目目录结构
+## 📂 项目结构规范
 
 ```text
 .
-├── content/              # 知识库 MD/MDX 源文件分类目录
-│   ├── backend/          # 后端开发与架构设计
-│   ├── database/         # 数据库设计与优化
-│   ├── devops/           # 容器化与持续集成
-│   ├── frontend/         # 前端底层与全栈推演
-│   └── security/         # 网络安全与底层系统
-├── scripts/              # 辅助构建脚本
-│   └── build-search-index.js # 离线检索索引生成脚本
-├── src/                  # Next.js 应用程序源码
-│   ├── app/              # App Router 路由与全局样式
-│   ├── components/       # 核心 UI 交互组件 (Countdown, Search, WikiShell 等)
-│   ├── context/          # 全局 UI 状态上下文 (UIContext)
-│   └── utils/            # 辅助工具函数 (文档树生成等)
-├── velite.config.ts      # Velite 数据集及 Schema 配置文件
-├── next.config.ts        # Next.js 编译与静态导出配置文件
-└── package.json          # 依赖管理及构建脚本
+├── content/                # 知识库技术源文档 (Markdown / MDX)
+│   ├── backend/            # 后端架构与分布式系统推演
+│   ├── database/           # 数据库设计、索引与事务分析
+│   ├── devops/             # 基础设施建设与持续集成交付
+│   ├── frontend/           # 前端底层机制与现代全栈演进
+│   └── security/           # 网络安全对抗、系统底层与边界防御
+├── scripts/                # 构建辅助脚本
+│   └── build-search-index.js # 自动化检索索引生成脚本
+├── src/                    # 应用程序源代码
+│   ├── app/                # App Router 路由节点与全局样式
+│   ├── components/         # 核心交互组件 (Search, MDXRender, TOC 等)
+│   ├── context/            # 全局 UI 状态上下文 (侧栏折叠、弹窗等)
+│   └── utils/              # 目录树组装等辅助算法
+├── velite.config.ts        # Velite 强类型 Schema 定义与配置
+├── next.config.ts          # Next.js 静态打包编译配置
+└── package.json            # 项目依赖声明与运行脚本
 ```
 
 ---
 
-## 开发与构建指南
+## 🚀 开发者与部署指南
 
-### 本地开发环境启动
+### 本地开发
 
-1. 安装依赖：
+1. **环境准备**：
+   确保安装 Node.js (v18+) 与 pnpm 包管理器。
+
+2. **安装依赖**：
    ```bash
-   npm install
+   pnpm install
    ```
 
-2. 启动开发服务器（此命令会并行启动 Velite 监听器与 Next.js 开发服务）：
+3. **启动开发服务器**：
+   此命令会同时拉起 Velite 内容热重载监听器与 Next.js 开发服务器。
    ```bash
-   npm run dev
+   pnpm dev
    ```
+   打开浏览器访问 [http://localhost:3000](http://localhost:3000)。
 
-3. 访问本地地址：
-   打开浏览器访问 http://localhost:3000
+### 生产静态导出
 
-### 生产静态导出构建
-
-1. 执行全量静态构建：
+1. **静态打包构建**：
    ```bash
-   npm run build
+   pnpm build
    ```
-   该构建命令会依次执行：
-   - 调用 Velite 解析 `content` 并生成静态强类型 JSON。
-   - 运行索引脚本抽取文本，编译生成 `public/search-index.json`。
-   - 调用 Next.js 静态打包，最终在 `out/` 目录生成完整的静态网站。
+   运行该命令后，系统将依次进行数据集解析、FlexSearch 索引文件生成、TS 类型静态校验，并在项目根目录下生成 `out/` 目录。
 
-2. 静态部署：
-   直接将 `out/` 目录下的所有静态文件部署到 Nginx、Caddy、GitHub Pages 或 Cloudflare Pages 等托管服务即可。
+2. **线上部署**：
+   直接将 `out/` 文件夹中的静态页面和资源上传至 Nginx、GitHub Pages、Cloudflare Pages 或 Vercel 即可。
 
 ---
 
-## 工程约束说明
+## 📜 提交与工程纪律
 
-项目遵循严格的代码与提交宪法。所有代码变更均需通过静态构建验证，且 Git 提交应严格遵守原子化提交规范，格式限定为：
+本项目严格遵守工程约束，保证代码的可维护性与提交历史的纯净：
 
-```text
-<type>(<scope>): <subject>
-```
-
-允许的提交类型（Type）包括：feat（新功能）、fix（缺陷修复）、refactor（重构）、perf（性能优化）、docs（文档修改）、style（格式调整）、test（测试用例）、chore（构建工具/辅助任务）。
+- **变更验证**：所有功能迭代在提交前必须本地通过 `pnpm build` 全量静态编译。
+- **Git 提交格式**：严格使用 Angular 格式进行原子化提交：
+  ```text
+  <type>(<scope>): <subject>
+  ```
+  *示例：`fix(search): 修复中文全文检索分词器 TS 类型报错`*
