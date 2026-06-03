@@ -1,7 +1,7 @@
-import React from "react";
 import type { Metadata } from "next";
 import { posts } from "#content";
 import HomeContent from "@/components/HomeContent";
+import { categoryMap } from "@/utils/tree";
 
 export const metadata: Metadata = {
   title: "文章列表 | 序栈",
@@ -10,14 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const categoryMap: Record<string, string> = {
-    frontend: "前端技术",
-    backend: "后端架构",
-    devops: "运维交付",
-    database: "数据存储",
-    security: "安全防护",
-  };
-
   // 提取去重后的分类并进行排序（确保分类按钮排序符合树的顺序）
   const categories = Array.from(
     new Set(posts.map((p) => p.category).filter((c): c is string => !!c))
@@ -31,10 +23,9 @@ export default function HomePage() {
   });
 
   return (
-    <HomeContent 
-      posts={posts} 
-      categories={categories} 
-      categoryMap={categoryMap} 
+    <HomeContent
+      posts={posts}
+      categories={categories}
     />
   );
 }

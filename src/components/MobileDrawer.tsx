@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 interface MobileDrawerProps {
@@ -54,7 +54,7 @@ export default function MobileDrawer({
   const positionClass = side === "left" ? "left-0 border-r" : "right-0 border-l";
 
   return (
-    <div className="fixed inset-0 z-50 flex no-print">
+    <div className="fixed inset-0 z-[60] flex no-print">
       {/* 遮罩层 */}
       <div
         className="absolute inset-0 bg-background/50 backdrop-blur-sm animate-fade-in-overlay"

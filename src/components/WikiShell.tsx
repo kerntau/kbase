@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,8 +24,9 @@ import { useUI } from "@/context/UIContext";
 import Sidebar from "./Sidebar";
 import TableOfContents from "./TableOfContents";
 import MobileDrawer from "./MobileDrawer";
-import Search from "./Search";
 import { TreeNode } from "@/utils/tree";
+
+const Search = dynamic(() => import("./Search"), { ssr: false });
 
 interface WikiShellProps {
   tree: TreeNode[];
@@ -46,24 +48,28 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
     setTheme,
   } = useUI();
 
-  const hasExpanded = Object.keys(expandedNodes).some((key) => expandedNodes[key]);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("kb_sidebar_collapsed") === "true";
-    }
-    return false;
-  });
+  // Use mounted guard to prevent hydration mismatch for localStorage-derived state
+  const hasExpanded = mounted ? Object.keys(expandedNodes).some((key) => expandedNodes[key]) : false;
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Restore sidebar collapse state after hydration
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("kb_sidebar_collapsed");
+      if (saved === "true") setIsSidebarCollapsed(true);
+    } catch {}
+  }, []);
 
   const handleToggleSidebar = (collapsed: boolean) => {
     setIsSidebarCollapsed(collapsed);
-    localStorage.setItem("kb_sidebar_collapsed", String(collapsed));
+    try {
+      localStorage.setItem("kb_sidebar_collapsed", String(collapsed));
+    } catch {}
   };
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -83,7 +89,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
           id="mobile-sidebar-toggle"
           onClick={() => setIsMobileSidebarOpen(true)}
           className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none"
-          aria-label="Open directory"
+          aria-label="打开目录"
         >
           <Menu size={18} />
         </button>
@@ -92,8 +98,8 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
           href="/kb"
           className="flex items-center gap-2 font-sans text-sm sm:text-base tracking-tight font-bold text-foreground hover:text-foreground/75 transition-colors"
         >
-          <Image src="/logo.png" alt="Logo" width={20} height={20} className="w-5 h-5 object-contain mix-blend-multiply dark:mix-blend-screen rounded-sm" unoptimized />
-          <span>序栈知识库</span>
+          <Image src="/logo.png" alt="序栈" width={20} height={20} className="w-5 h-5 object-contain mix-blend-multiply dark:mix-blend-screen rounded-sm" unoptimized />
+          <span>序栈<sup className="text-[8px] ml-0.5 align-super">®</sup>知识库</span>
         </Link>
 
         <div className="flex items-center gap-1">
@@ -101,7 +107,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
             id="mobile-search-toggle"
             onClick={() => setIsSearchOpen(true)}
             className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none"
-            aria-label="Search"
+            aria-label="搜索"
           >
             <SearchIcon size={18} />
           </button>
@@ -111,7 +117,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
               id="mobile-toc-toggle"
               onClick={() => setIsMobileTOCOpen(true)}
               className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none"
-              aria-label="Open table of contents"
+              aria-label="打开目录大纲"
             >
               <List size={18} />
             </button>
@@ -119,7 +125,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
             <button
               onClick={toggleTheme}
               className="p-1.5 rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors focus:outline-none ml-1"
-              aria-label="Toggle theme"
+              aria-label="切换主题"
             >
               {mounted ? (theme === "dark" ? <Sun size={18} /> : <Moon size={18} />) : <div className="w-[18px] h-[18px]" />}
             </button>
@@ -144,8 +150,8 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
                   href="/kb"
                   className="flex items-center gap-2 font-sans text-base tracking-tight font-bold text-foreground hover:text-foreground/75 transition-colors"
                 >
-                  <Image src="/logo.png" alt="Logo" width={20} height={20} className="w-5 h-5 object-contain" unoptimized />
-                  <span>序栈知识库</span>
+                  <Image src="/logo.png" alt="序栈" width={20} height={20} className="w-5 h-5 object-contain" unoptimized />
+                  <span>序栈<sup className="text-[8px] ml-0.5 align-super">®</sup>知识库</span>
                 </Link>
                 <div className="flex items-center gap-0.5">
                   <button
@@ -236,6 +242,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
                 }}
                 className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
                 title="后退"
+                aria-label="后退"
               >
                 <ArrowLeft size={15} />
               </button>
@@ -243,6 +250,7 @@ export default function WikiShell({ tree, children }: WikiShellProps) {
                 onClick={() => window.history.forward()}
                 className="p-1 rounded-md text-foreground/45 hover:text-foreground hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors cursor-pointer"
                 title="前进"
+                aria-label="前进"
               >
                 <ArrowRight size={15} />
               </button>

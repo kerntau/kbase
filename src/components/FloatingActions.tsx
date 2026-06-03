@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Home, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -8,19 +8,24 @@ export default function FloatingActions() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [hovering, setHovering] = useState(false);
+  const hoveringRef = useRef(hovering);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep ref in sync with state
+  useEffect(() => { hoveringRef.current = hovering; }, [hovering]);
 
   const resetHideTimer = () => {
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);
     }
     hideTimeoutRef.current = setTimeout(() => {
-      if (!hovering) {
+      if (!hoveringRef.current) {
         setVisible(false);
       }
     }, 2500);
   };
 
+  // Register scroll listener only once; use ref for hovering state
   useEffect(() => {
     const handleScroll = () => {
       // 只要滚动了超过 150px，便显示该组件
@@ -35,7 +40,8 @@ export default function FloatingActions() {
         clearTimeout(hideTimeoutRef.current);
       }
     };
-  }, [hovering]); // 确保定时器读取的是最新的 hovering 状态
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleMouseEnter = () => {
     setHovering(true);
@@ -75,7 +81,7 @@ export default function FloatingActions() {
           className="flex items-center justify-center text-foreground/50 hover:text-accent transition-all duration-200 active:scale-90 cursor-pointer"
           id="capsule-btn-home"
           aria-label="返回索引"
-          title="Back to index"
+          title="返回索引"
         >
           <Home size={16} strokeWidth={2.2} />
         </button>
@@ -89,7 +95,7 @@ export default function FloatingActions() {
           className="flex items-center justify-center text-foreground/50 hover:text-accent transition-all duration-200 active:scale-90 cursor-pointer"
           id="capsule-btn-top"
           aria-label="回到顶部"
-          title="Top"
+          title="回到顶部"
         >
           <ChevronUp size={18} strokeWidth={2.5} />
         </button>

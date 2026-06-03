@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -9,6 +9,35 @@ import React, {
 } from "react";
 import { VeliteTocItem } from "@/components/TableOfContents";
 import { TreeNode } from "@/utils/tree";
+
+// ── TOC Context (isolated to avoid re-rendering sidebar/search on TOC changes) ──
+
+interface TOCContextType {
+  currentToc: VeliteTocItem[];
+  setCurrentToc: (toc: VeliteTocItem[]) => void;
+}
+
+const TOCContext = createContext<TOCContextType | undefined>(undefined);
+
+export function TOCProvider({ children }: { children: React.ReactNode }) {
+  const [currentToc, setCurrentToc] = useState<VeliteTocItem[]>([]);
+
+  return (
+    <TOCContext value={{ currentToc, setCurrentToc }}>
+      {children}
+    </TOCContext>
+  );
+}
+
+export function useTOC() {
+  const context = useContext(TOCContext);
+  if (!context) {
+    throw new Error("useTOC must be used within a TOCProvider");
+  }
+  return context;
+}
+
+// ── Core UI Context (sidebar, search, theme, expanded nodes) ──
 
 interface UIContextType {
   isMobileSidebarOpen: boolean;
@@ -30,27 +59,28 @@ interface UIContextType {
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 export function UIProvider({ children }: { children: React.ReactNode }) {
+  const { currentToc, setCurrentToc } = useTOC();
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileTOCOpen, setIsMobileTOCOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
+  // Initialize with server-safe defaults; restore from localStorage in useEffect to avoid hydration mismatch
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
+  const [theme, setThemeState] = useState<"light" | "dark" | "system">("system");
+
+  // Restore persisted state after hydration
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem("kb_expanded_nodes");
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-  const [currentToc, setCurrentToc] = useState<VeliteTocItem[]>([]);
-  const [theme, setThemeState] = useState<"light" | "dark" | "system">(() => {
-    if (typeof window === "undefined") return "system";
+      const savedNodes = localStorage.getItem("kb_expanded_nodes");
+      if (savedNodes) setExpandedNodes(JSON.parse(savedNodes));
+    } catch {}
     try {
-      return (localStorage.getItem("kb_theme") as "light" | "dark" | "system") || "system";
-    } catch {
-      return "system";
-    }
-  });
+      const savedTheme = localStorage.getItem("kb_theme") as "light" | "dark" | "system" | null;
+      if (savedTheme) setThemeState(savedTheme);
+    } catch {}
+    setHydrated(true);
+  }, []);
 
 
 

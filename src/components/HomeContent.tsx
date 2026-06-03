@@ -1,27 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useMemo, type ComponentType } from "react";
 import Link from "next/link";
-import { 
-  Layers, 
-  Layout, 
-  Cpu, 
-  Infinity as InfinityIcon, 
-  Database, 
+import {
+  Layers,
+  Layout,
+  Cpu,
+  Infinity as InfinityIcon,
+  Database,
   Shield,
   Calendar,
   BookOpen,
   FolderOpen
 } from "lucide-react";
 import { Post } from "#content";
+import { categoryMap, sortByDate } from "@/utils/tree";
 
 interface HomeContentProps {
   posts: Post[];
   categories: string[];
-  categoryMap: Record<string, string>;
 }
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+const CATEGORY_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {
   frontend: Layout,
   backend: Cpu,
   devops: InfinityIcon,
@@ -29,30 +29,24 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; classN
   security: Shield,
 };
 
-export default function HomeContent({ posts, categories, categoryMap }: HomeContentProps) {
+export default function HomeContent({ posts, categories }: HomeContentProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   // 按日期降序排列
-  const sortedPosts = [...posts].sort((a, b) => {
-    const getTime = (dateStr?: string) => {
-      if (!dateStr) return 0;
-      const time = new Date(dateStr).getTime();
-      return isNaN(time) ? 0 : time;
-    };
-    return getTime(b.date) - getTime(a.date);
-  });
+  const sortedPosts = useMemo(() => sortByDate(posts), [posts]);
 
   // 按当前分类过滤
-  const displayPosts = activeCategory
-    ? sortedPosts.filter((p) => p.category === activeCategory)
-    : sortedPosts;
+  const displayPosts = useMemo(() => {
+    if (!activeCategory) return sortedPosts;
+    return sortedPosts.filter((p) => p.category === activeCategory);
+  }, [sortedPosts, activeCategory]);
 
   return (
     <div className="flex flex-col gap-8 py-4 select-text animate-fade-in">
       {/* 卷首语区 */}
       <section className="flex flex-col gap-4.5 border-b border-divider/40 pb-6.5">
         <h1 className="font-sans text-3xl md:text-[2.2rem] tracking-tight font-extrabold bg-gradient-to-r from-foreground via-foreground to-accent bg-clip-text text-transparent leading-none">
-          序栈
+          序栈<sup className="text-[0.45em] ml-0.5 align-super">®</sup>
         </h1>
         <div className="flex flex-col gap-2.5 text-foreground/70 leading-[1.8] font-sans text-[0.92rem] md:text-[0.96rem] max-w-2xl">
           <p>序栈（Sequence Stack）是一个专注于计算机底层原理、系统安全与现代软件架构的计算机技术知识库。</p>

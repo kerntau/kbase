@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useTransition, useCallback } from "react";
+import { useEffect, useState, useRef, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search as SearchIcon, X, FileText, CornerDownLeft, AlertCircle } from "lucide-react";
 import { Index } from "flexsearch";
@@ -141,8 +141,7 @@ export default function Search() {
         searchIndexRef.current = idx;
         setIndexState("ready");
       })
-      .catch((err) => {
-        console.warn("[Search] Failed to load search-index.json:", err.message);
+      .catch(() => {
         setIndexState("error");
       });
   }, [isSearchOpen]);
@@ -167,16 +166,6 @@ export default function Search() {
     if (!trimmed) return;
     setHistory((prev) => {
       const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(0, 5);
-      localStorage.setItem("kb_search_history", JSON.stringify(next));
-      return next;
-    });
-  }, []);
-
-  // 删除单条搜索历史
-  const deleteHistoryItem = useCallback((e: React.MouseEvent, item: string) => {
-    e.stopPropagation();
-    setHistory((prev) => {
-      const next = prev.filter((i) => i !== item);
       localStorage.setItem("kb_search_history", JSON.stringify(next));
       return next;
     });
@@ -219,13 +208,17 @@ export default function Search() {
         e.preventDefault();
         if (results[selectedIndex]) handleNavigate(results[selectedIndex].permalink);
         break;
+      case "Tab":
+        // 焦点陷阱：阻止 Tab 离开搜索弹窗
+        e.preventDefault();
+        break;
     }
   };
 
   if (!isSearchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4 sm:px-6 no-print select-none">
+    <div className="fixed inset-0 z-[70] flex items-start justify-center pt-[10vh] px-4 sm:px-6 no-print select-none">
       {/* 遮罩 */}
       <div
         className="absolute inset-0 bg-background/50 backdrop-blur-sm"
@@ -238,7 +231,7 @@ export default function Search() {
         className="relative w-full max-w-[768px] bg-background border border-[#3b82f6] shadow-[0_0_0_3px_rgba(59,130,246,0.15)] dark:border-[#3b82f6] dark:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] flex flex-col overflow-hidden max-h-[85vh] rounded-xl animate-search-reveal"
         role="dialog"
         aria-modal="true"
-        aria-label="Search"
+        aria-label="搜索"
       >
         {/* 输入区 */}
         <div className="flex items-center gap-3 px-5 h-14 border-b border-divider/50 shrink-0">

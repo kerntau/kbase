@@ -1,3 +1,22 @@
+export const categoryMap: Record<string, string> = {
+  frontend: "前端技术",
+  backend: "后端架构",
+  devops: "运维交付",
+  database: "数据存储",
+  security: "安全防护",
+};
+
+export function sortByDate<T extends { date?: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const getTime = (d?: string) => {
+      if (!d) return 0;
+      const t = new Date(d).getTime();
+      return isNaN(t) ? 0 : t;
+    };
+    return getTime(b.date) - getTime(a.date);
+  });
+}
+
 export interface TreeNode {
   name: string;
   path: string; // 文件夹路径或文章 permalink

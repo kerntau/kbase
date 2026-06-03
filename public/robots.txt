@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://xstack.cn/sitemap.xml

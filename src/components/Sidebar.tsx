@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -62,7 +62,7 @@ export default function Sidebar({ tree }: SidebarProps) {
     findAndExpand(tree, []);
   }, [pathname, tree, expandNode]);
 
-  const renderTree = (nodes: TreeNode[], depth = 0) => {
+  const renderTree = useCallback((nodes: TreeNode[], depth = 0) => {
     return nodes.map((node) => {
       const isExpanded = !!expandedNodes[node.path];
       const indent = { paddingLeft: `${depth * 14 + 8}px` };
@@ -132,7 +132,7 @@ export default function Sidebar({ tree }: SidebarProps) {
         );
       }
     });
-  };
+  }, [expandedNodes, pathname, toggleNode, setIsMobileSidebarOpen]);
 
   return (
     <nav className="w-full flex flex-col gap-0.5 py-4 select-none" aria-label="Document tree">

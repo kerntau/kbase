@@ -9,6 +9,7 @@ import TOCUpdater from "@/components/TOCUpdater";
 import FloatingActions from "@/components/FloatingActions";
 import PageNavigationShortcuts from "@/components/PageNavigationShortcuts";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
+import { categoryMap, sortByDate } from "@/utils/tree";
 
 
 function countWordsAndReadingTime(htmlContent: string) {
@@ -59,14 +60,7 @@ export default async function PostPage({ params }: PageProps) {
   const { totalWords, readingTime } = countWordsAndReadingTime(post.content);
 
   // 按日期降序排列所有文档
-  const sortedPosts = [...posts].sort((a, b) => {
-    const getTime = (dateStr?: string) => {
-      if (!dateStr) return 0;
-      const time = new Date(dateStr).getTime();
-      return isNaN(time) ? 0 : time;
-    };
-    return getTime(b.date) - getTime(a.date);
-  });
+  const sortedPosts = sortByDate(posts.map((p) => ({ ...p, date: p.date ?? "" })));
 
   const currentIndex = sortedPosts.findIndex((p) => p.slug === postSlug);
   // 降序排序下：
@@ -122,16 +116,7 @@ export default async function PostPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center gap-4 text-xs text-foreground/50">
           {post.category && (
             <span className="bg-accent/8 border border-accent/20 text-accent font-bold px-2 py-0.5 rounded-sm text-[10px] tracking-wider uppercase select-none">
-              {(() => {
-                const categoryMap: Record<string, string> = {
-                  frontend: "前端技术",
-                  backend: "后端架构",
-                  devops: "运维交付",
-                  database: "数据存储",
-                  security: "安全防护",
-                };
-                return categoryMap[post.category.toLowerCase()] || post.category;
-              })()}
+              {categoryMap[post.category.toLowerCase()] || post.category}
             </span>
           )}
           
@@ -173,6 +158,7 @@ export default async function PostPage({ params }: PageProps) {
         {prevPost ? (
           <Link
             href={prevPost.permalink}
+            aria-label={`上一篇: ${prevPost.title}`}
             className="group flex items-center gap-2 max-w-[48%] transition-opacity"
           >
             <svg
@@ -200,6 +186,7 @@ export default async function PostPage({ params }: PageProps) {
         {nextPost ? (
           <Link
             href={nextPost.permalink}
+            aria-label={`下一篇: ${nextPost.title}`}
             className="group flex items-center justify-end gap-2 max-w-[48%] transition-opacity text-right ml-auto"
           >
             <div className="min-w-0">

@@ -1,4 +1,3 @@
-import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, LayoutTemplate, ChevronRight } from "lucide-react";
@@ -94,54 +93,52 @@ export default function ManifestoPage() {
       </div>
 
       {/* 底部版权与备案 - relative 布局，杜绝矮屏手机重叠遮挡 */}
-      <footer className="animate-spring-reveal delay-500 w-full text-center mt-16 select-none text-[10px] font-mono tracking-wider font-light text-foreground/35 uppercase py-6 border-t border-divider/20">
-        <div className="max-w-3xl mx-auto flex flex-col items-center gap-3.5">
-          
-          <div className="flex items-center gap-2">
-            <span>© 2026 序栈</span>
-            <span className="w-0.5 h-0.5 rounded-full bg-divider" aria-hidden="true" />
-            <span>保留所有权利</span>
+      <footer className="animate-spring-reveal delay-500 relative z-10 w-full border-t border-divider/20 bg-background/40 backdrop-blur-xl py-10 px-6 select-none text-[10px] font-mono tracking-wider font-light text-foreground/35 uppercase">
+        <div className="max-w-3xl mx-auto flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between md:gap-4">
+
+          <div className="flex flex-col items-center md:items-start gap-3">
+            <div className="flex items-center gap-2 opacity-70">
+              <span>© {new Date().getFullYear()} 序栈</span>
+              <span className="w-0.5 h-0.5 rounded-full bg-divider" aria-hidden="true" />
+              <span>保留所有权利</span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px]">
-            {/* EdgeOne */}
-            <span className="inline-flex items-center gap-1.5 bg-muted/65 px-2 py-0.5 rounded-sm">
-              <svg className="w-3 h-3 text-foreground/30 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              EdgeOne 驱动
-            </span>
+          <div className="w-12 h-px bg-divider/20 md:hidden" />
 
-            {/* ICP 备案 */}
-            <a 
-              href="https://beian.miit.gov.cn/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 hover:text-foreground hover:opacity-100 transition-opacity"
-            >
-              <svg className="w-2.5 h-2.5 text-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-              </svg>
-              鄂ICP备2025157857号
-            </a>
+          <div className="flex flex-col items-center md:items-end gap-3.5">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px]">
+              {/* EdgeOne */}
+              <span className="inline-flex items-center gap-1.5 bg-muted/65 px-2 py-0.5 rounded-sm">
+                <svg className="w-3 h-3 text-foreground/30 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                EdgeOne 驱动
+              </span>
 
-            {/* 公网安备 */}
-            <a 
-              href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42018502008592" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 hover:text-foreground hover:opacity-100 transition-opacity"
-            >
-              <svg className="w-2.5 h-2.5 text-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              鄂公网安备 42018502008592号
-            </a>
+              {/* ICP 备案 */}
+              <span className="hidden sm:inline text-divider">|</span>
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 py-1 hover:text-foreground hover:opacity-100 transition-opacity"
+              >
+                鄂ICP备2025157857号
+              </a>
+
+              {/* 公网安备 */}
+              <span className="hidden sm:inline text-divider">|</span>
+              <a
+                href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42018502008592"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 py-1 hover:text-foreground hover:opacity-100 transition-opacity"
+              >
+                鄂公网安备 42018502008592号
+              </a>
+            </div>
           </div>
-
         </div>
       </footer>
     </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface MDXRenderProps {
   content: string;
@@ -22,6 +22,9 @@ export default function MDXRender({ content }: MDXRenderProps) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    // Collect cleanup functions for event listeners
+    const cleanups: (() => void)[] = [];
 
     // ── 标题：自动注入 id（与 Velite TOC url 规则保持一致）────────
     // Velite 使用 GitHub slug 规则：小写，空格→连字符，去除非字母数字字符
@@ -75,7 +78,7 @@ export default function MDXRender({ content }: MDXRenderProps) {
       btn.textContent = "Copy";
       btn.setAttribute("aria-label", "Copy code");
 
-      btn.addEventListener("click", async () => {
+      const handleCopy = async () => {
         const code =
           pre.querySelector("code")?.textContent ?? pre.textContent ?? "";
         try {
@@ -89,7 +92,10 @@ export default function MDXRender({ content }: MDXRenderProps) {
           btn.textContent = "Copy";
           btn.classList.remove("text-accent", "border-accent/50", "shadow-sm", "shadow-accent/10", "scale-[1.03]");
         }, 1800);
-      });
+      };
+
+      btn.addEventListener("click", handleCopy);
+      cleanups.push(() => btn.removeEventListener("click", handleCopy));
 
       pre.appendChild(btn);
     });
@@ -100,15 +106,15 @@ export default function MDXRender({ content }: MDXRenderProps) {
       const match = html.match(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
       if (match) {
         const type = match[1].toUpperCase();
-        
+
         const cleanHtml = html
           .replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(<br\s*\/?>)?/i, "")
           .replace(/<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, "<p>")
           .trim();
-        
+
         bq.innerHTML = cleanHtml;
         bq.className = "my-6 p-4.5 border-l-4 rounded-r-sm select-text transition-all duration-300 font-sans text-sm leading-relaxed";
-        
+
         if (type === "NOTE") {
           bq.classList.add("bg-blue-500/[0.03]", "border-blue-500/80", "text-foreground/90", "dark:bg-blue-400/[0.02]");
         } else if (type === "TIP") {
@@ -126,11 +132,11 @@ export default function MDXRender({ content }: MDXRenderProps) {
     // ── 提示折叠卡片 (details/summary)：习题与解析卡片化 ────────
     el.querySelectorAll("details").forEach((details) => {
       details.className = "my-5 border border-divider/50 rounded-sm bg-foreground/[0.003] dark:bg-white/[0.002] overflow-hidden transition-all duration-300";
-      
+
       const summary = details.querySelector("summary");
       if (summary) {
         summary.className = "px-4 py-3 font-sans text-xs font-bold tracking-wider text-foreground/75 cursor-pointer hover:bg-foreground/[0.015] focus:outline-none transition-colors border-b border-transparent select-none list-none [&::-webkit-details-marker]:hidden flex items-center gap-2";
-        
+
         // 动态添加一个展开小箭头
         if (!summary.querySelector(".marker-icon")) {
           const marker = document.createElement("span");
@@ -140,7 +146,7 @@ export default function MDXRender({ content }: MDXRenderProps) {
           marker.style.display = "inline-block";
           summary.insertBefore(marker, summary.firstChild);
 
-          details.addEventListener("toggle", () => {
+          const handleToggle = () => {
             if (details.open) {
               summary.classList.add("border-divider/30");
               marker.style.transform = "rotate(90deg)";
@@ -148,7 +154,10 @@ export default function MDXRender({ content }: MDXRenderProps) {
               summary.classList.remove("border-divider/30");
               marker.style.transform = "rotate(0deg)";
             }
-          });
+          };
+
+          details.addEventListener("toggle", handleToggle);
+          cleanups.push(() => details.removeEventListener("toggle", handleToggle));
         }
       }
     });
@@ -156,13 +165,19 @@ export default function MDXRender({ content }: MDXRenderProps) {
     // ── 图片灯箱 (Lightbox)：点击图片进行大图毛玻璃放大 ────────
     el.querySelectorAll("img").forEach((img) => {
       img.style.cursor = "zoom-in";
-      
+
       const handleClick = () => {
         setActiveImageUrl(img.src);
       };
-      
+
       img.addEventListener("click", handleClick);
+      cleanups.push(() => img.removeEventListener("click", handleClick));
     });
+
+    // Cleanup all event listeners on unmount or content change
+    return () => {
+      cleanups.forEach((fn) => fn());
+    };
   }, [content, setActiveImageUrl]);
 
   return (
@@ -199,13 +214,24 @@ export default function MDXRender({ content }: MDXRenderProps) {
       {/* 极简磨砂大图 Lightbox 弹出层 */}
       {activeImageUrl && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md cursor-zoom-out select-none animate-fade-in"
+          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center cursor-pointer"
           onClick={() => setActiveImageUrl(null)}
+          onKeyDown={(e) => e.key === "Escape" && setActiveImageUrl(null)}
+          role="dialog"
+          aria-label="图片预览"
+          tabIndex={-1}
         >
+          <button
+            className="absolute top-4 right-4 text-white text-3xl hover:opacity-70 transition-opacity cursor-pointer"
+            onClick={() => setActiveImageUrl(null)}
+            aria-label="关闭预览"
+          >
+            ✕
+          </button>
           <img
             src={activeImageUrl}
-            alt="Zoomed detail"
-            className="max-w-full max-h-full object-contain rounded-sm transition-all duration-300 transform scale-100 shadow-2xl"
+            alt="放大预览"
+            className="max-w-full max-h-full object-contain"
           />
         </div>
       )}

@@ -1,25 +1,31 @@
-import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, LayoutTemplate, Terminal, Shield, Cpu, Activity } from "lucide-react";
 import { posts } from "#content";
+import { sortByDate } from "@/utils/tree";
 
 export const metadata: Metadata = {
   title: "序栈 | 计算机系统与安全知识库",
   description: "序栈知识库，记录网络安全、系统底层与现代架构的技术沉淀与实践。",
   keywords: ["序栈", "知识库", "系统安全", "全栈开发", "计算机底层"],
+  openGraph: {
+    title: "序栈 - 全栈技术知识库",
+    description: "全栈技术知识库，涵盖前端、后端、数据库、运维与安全",
+    url: "https://xstack.cn",
+    siteName: "序栈",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "序栈 - 全栈技术知识库",
+    description: "全栈技术知识库，涵盖前端、后端、数据库、运维与安全",
+  },
 };
 
 export default function MarketingHomePage() {
   // 提取最新 3 篇计算机技术文档
-  const recentPosts = [...posts]
-    .sort((a, b) => {
-      const tA = a.date ? new Date(a.date).getTime() : 0;
-      const tB = b.date ? new Date(b.date).getTime() : 0;
-      return tB - tA;
-    })
-    .slice(0, 3);
+  const recentPosts = sortByDate(posts.map((p) => ({ ...p, date: p.date ?? "" }))).slice(0, 3);
 
   return (
     <main className="relative min-h-screen bg-background text-foreground overflow-x-hidden flex flex-col justify-between selection:bg-accent/20 transition-colors duration-500">
@@ -35,8 +41,8 @@ export default function MarketingHomePage() {
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-background/60 backdrop-blur-xl border-b border-divider/30 select-none no-print transition-all duration-300">
         <div className="max-w-5xl mx-auto h-full px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <Image src="/logo.png" alt="Logo" width={22} height={22} className="w-5.5 h-5.5 object-contain opacity-90 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) group-hover:scale-110 group-hover:rotate-3 mix-blend-multiply dark:mix-blend-screen rounded-sm" unoptimized />
-            <span className="font-sans text-sm tracking-widest font-bold text-foreground">序栈</span>
+            <Image src="/logo.png" alt="序栈" width={22} height={22} className="w-5.5 h-5.5 object-contain opacity-90 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) group-hover:scale-110 group-hover:rotate-3 mix-blend-multiply dark:mix-blend-screen rounded-sm" unoptimized />
+            <span className="font-sans text-sm tracking-widest font-bold text-foreground">序栈<sup className="text-[8px] ml-0.5 align-super">®</sup></span>
           </Link>
 
           <nav className="flex items-center gap-1 sm:gap-2 text-[11px] sm:text-xs font-mono tracking-wider font-semibold uppercase">
@@ -54,7 +60,7 @@ export default function MarketingHomePage() {
         <div className="animate-spring-reveal flex flex-col items-center gap-5 mb-8 select-none group/logo">
           <div className="relative">
             <div className="absolute inset-0 bg-accent/15 dark:bg-accent/25 rounded-full blur-xl scale-[1.4] opacity-0 group-hover/logo:opacity-100 transition-opacity duration-1000 ease-out" />
-            <Image src="/logo.png" alt="Logo" width={64} height={64} className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 object-contain opacity-90 group-hover/logo:scale-105 group-hover/logo:rotate-1 transition-all duration-700 ease-out drop-shadow-sm mix-blend-multiply dark:mix-blend-screen rounded-xl" unoptimized />
+            <Image src="/logo.png" alt="序栈" width={64} height={64} className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 object-contain opacity-90 group-hover/logo:scale-105 group-hover/logo:rotate-1 transition-all duration-700 ease-out drop-shadow-sm mix-blend-multiply dark:mix-blend-screen rounded-xl" unoptimized />
           </div>
           <div className="group/badge relative inline-flex items-center gap-2 text-[10px] font-mono tracking-widest uppercase cursor-default px-3.5 py-1.5 rounded-sm bg-foreground/[0.02] border border-foreground/[0.06] backdrop-blur-md overflow-hidden transition-all duration-500 hover:bg-foreground/[0.04] hover:border-foreground/[0.12]">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] skew-x-[-15deg] group-hover/badge:animate-shine" />
@@ -194,28 +200,30 @@ export default function MarketingHomePage() {
       </div>
 
       {/* 底部版权与备案 */}
-      <footer className="animate-spring-reveal delay-800 relative z-10 border-t border-divider/30 bg-background/40 backdrop-blur-xl py-8 px-6 select-none text-[10px] font-mono tracking-wider font-light text-foreground/40 uppercase">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-6 md:gap-4">
-          
+      <footer className="animate-spring-reveal delay-800 relative z-10 border-t border-divider/30 bg-background/40 backdrop-blur-xl py-10 px-6 select-none text-[10px] font-mono tracking-wider font-light text-foreground/40 uppercase">
+        <div className="max-w-5xl mx-auto flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between md:gap-4">
+
           <div className="flex flex-col items-center md:items-start gap-3">
             <Link href="/" className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
-              <Image src="/logo.png" alt="Logo" width={16} height={16} className="w-4 h-4 object-contain grayscale" unoptimized />
+              <Image src="/logo.png" alt="序栈" width={16} height={16} className="w-4 h-4 object-contain grayscale" unoptimized />
               <span className="font-sans text-xs font-bold tracking-widest text-foreground">Sequence Stack</span>
             </Link>
             <div className="flex items-center gap-2 opacity-70">
-              <span>© 2026 序栈</span>
+              <span>© {new Date().getFullYear()} 序栈</span>
               <span className="w-0.5 h-0.5 rounded-full bg-divider" />
               <span>保留所有权利</span>
             </div>
           </div>
 
+          <div className="w-12 h-px bg-divider/20 md:hidden" />
+
           <div className="flex flex-col items-center md:items-end gap-4">
             <div className="flex items-center gap-4 text-[10px] font-semibold">
-              <Link href="/kb" className="hover:text-foreground transition-colors">知识库</Link>
+              <Link href="/kb" className="py-1 hover:text-foreground transition-colors">知识库</Link>
               <span className="text-divider">/</span>
-              <Link href="/manifesto" className="hover:text-foreground transition-colors">发刊词</Link>
+              <Link href="/manifesto" className="py-1 hover:text-foreground transition-colors">发刊词</Link>
             </div>
-            
+
             <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-2 opacity-80">
               <span className="inline-flex items-center gap-1">
                 <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
@@ -223,12 +231,12 @@ export default function MarketingHomePage() {
                 </svg>
                 EdgeOne 驱动
               </span>
-              <span className="text-divider">|</span>
-              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+              <span className="text-divider hidden sm:inline">|</span>
+              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 py-1 hover:text-foreground transition-colors">
                 鄂ICP备2025157857号
               </a>
-              <span className="text-divider">|</span>
-              <a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42018502008592" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+              <span className="text-divider hidden sm:inline">|</span>
+              <a href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42018502008592" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 py-1 hover:text-foreground transition-colors">
                 鄂公网安备 42018502008592号
               </a>
             </div>
