@@ -6,10 +6,15 @@ import { Calendar, FileText, Clock } from "lucide-react";
 import { posts } from "#content";
 import MDXRender from "@/components/MDXRender";
 import TOCUpdater from "@/components/TOCUpdater";
-import FloatingActions from "@/components/FloatingActions";
 import PageNavigationShortcuts from "@/components/PageNavigationShortcuts";
+import ShareButton from "@/components/ShareButton";
+import FloatingActions from "@/components/FloatingActions";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
-import { categoryMap, sortByDate } from "@/utils/tree";
+import { sortByDate } from "@/lib/tree";
+import { categoryMap } from "@/lib/constants";
+import { generateArticleSchema, generateBreadcrumbSchema } from "@/lib/jsonld";
+
+const postMap = new Map(posts.map((p) => [p.slug, p]));
 
 
 function countWordsAndReadingTime(htmlContent: string) {
@@ -36,7 +41,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = posts.find((p) => p.slug === slug.join("/"));
+  const postSlug = slug.join("/");
+  const post = postMap.get(postSlug);
   if (!post) return { title: "文档未找到 | 序栈" };
   return {
     title: `${post.title} | 序栈`,
@@ -46,6 +52,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: post.title,
       description: post.description,
       type: "article",
+      url: `https://cot.wiki${post.permalink}`,
+      siteName: "序栈",
+      images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["/og-image.jpg"],
     },
   };
 }
@@ -53,41 +66,58 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
   const postSlug = slug.join("/");
-  const post = posts.find((p) => p.slug === postSlug);
+
+  const post = postMap.get(postSlug);
 
   if (!post) notFound();
 
   const { totalWords, readingTime } = countWordsAndReadingTime(post.content);
 
-  // 按日期降序排列所有文档
-  const sortedPosts = sortByDate(posts.map((p) => ({ ...p, date: p.date ?? "" })));
+  // 同分类内的上下篇导航
+  const categoryPosts = posts.filter((p) => p.category === post.category);
+  const sortedCategoryPosts = sortByDate(categoryPosts.map((p) => ({ ...p, date: p.date ?? "" })));
+  const currentCatIndex = sortedCategoryPosts.findIndex((p) => p.slug === postSlug);
+  const prevPost = currentCatIndex < sortedCategoryPosts.length - 1 ? sortedCategoryPosts[currentCatIndex + 1] : null;
+  const nextPost = currentCatIndex > 0 ? sortedCategoryPosts[currentCatIndex - 1] : null;
 
-  const currentIndex = sortedPosts.findIndex((p) => p.slug === postSlug);
-  // 降序排序下：
-  // currentIndex + 1 是时间上更早发表的（上一篇）
-  // currentIndex - 1 是时间上更晚发表的（下一篇）
-  const prevPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
-  const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
-
-  // 面包屑：Home > [folder segments] > Title
+  // 面包屑：Home > [folder segments] > Title（一次计算，复用于 JSX 与 JSON-LD）
   const segments = postSlug.split("/");
-  const breadcrumbs: { label: string; href?: string }[] = [
+  const folderSegments = segments.slice(0, -1);
+  const breadcrumbItems: { label: string; href?: string }[] = [
     { label: "Home", href: "/kb" },
-    ...segments.slice(0, -1).map((seg) => ({
+    ...folderSegments.map((seg) => ({
       label: seg.charAt(0).toUpperCase() + seg.slice(1),
     })),
     { label: post.title },
   ];
+  const jsonLdBreadcrumbs = [
+    { name: "Home", url: "/kb" },
+    ...folderSegments.map((seg) => ({
+      name: seg.charAt(0).toUpperCase() + seg.slice(1),
+      url: `/kb/${seg}`,
+    })),
+    { name: post.title, url: post.permalink },
+  ];
 
   return (
     <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(generateArticleSchema(post)) }}
+    />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(generateBreadcrumbSchema(jsonLdBreadcrumbs)),
+      }}
+    />
     <ReadingProgressBar />
     <article className="flex flex-col gap-3 py-3 sm:py-4 px-4 sm:px-0 select-text animate-fade-in">
       {/* 面包屑 */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-foreground/40 font-mono flex-wrap mb-2 sm:mb-3.5">
-        {breadcrumbs.map((crumb, i) => (
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-foreground/60 font-mono flex-wrap mb-2 sm:mb-3.5">
+        {breadcrumbItems.map((crumb, i) => (
           <React.Fragment key={i}>
-            {i > 0 && <span className="select-none opacity-50">/</span>}
+            {i > 0 && <span className="select-none opacity-50" aria-hidden="true">/</span>}
             {crumb.href ? (
               <Link
                 href={crumb.href}
@@ -96,7 +126,7 @@ export default async function PostPage({ params }: PageProps) {
                 {crumb.label}
               </Link>
             ) : (
-              <span className={i === breadcrumbs.length - 1 ? "text-foreground/60 truncate max-w-[200px]" : ""}>
+              <span className={i === breadcrumbItems.length - 1 ? "text-foreground/60 truncate max-w-[200px]" : ""}>
                 {crumb.label}
               </span>
             )}
@@ -113,7 +143,7 @@ export default async function PostPage({ params }: PageProps) {
           {post.title}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs text-foreground/50">
+        <div className="flex flex-wrap items-center gap-4 text-xs text-foreground/60">
           {post.category && (
             <span className="bg-accent/8 border border-accent/20 text-accent font-bold px-2 py-0.5 rounded-sm text-[10px] tracking-wider uppercase select-none">
               {categoryMap[post.category.toLowerCase()] || post.category}
@@ -122,31 +152,33 @@ export default async function PostPage({ params }: PageProps) {
           
           {post.date && (
             <span className="flex items-center gap-1.5 font-mono">
-              <Calendar size={13} className="text-foreground/40" />
+              <Calendar size={13} className="text-foreground/55" />
               <time>{post.date.split("T")[0]}</time>
             </span>
           )}
 
           <span className="flex items-center gap-1.5 font-mono">
-            <FileText size={13} className="text-foreground/40" />
+            <FileText size={13} className="text-foreground/55" />
             <span>{totalWords.toLocaleString()} 字</span>
           </span>
 
           <span className="flex items-center gap-1.5">
-            <Clock size={13} className="text-foreground/40" />
+            <Clock size={13} className="text-foreground/55" />
             <span>预计 {readingTime} 分钟阅读</span>
           </span>
+
+          <ShareButton title={post.title} />
         </div>
 
         {post.description && (
-          <p className="text-foreground/50 text-[0.88rem] leading-relaxed max-w-2xl sm:text-[0.92rem] font-sans border-l-2 border-divider/60 pl-3.5 py-0.5 mt-1">
+          <p className="text-foreground/60 text-[0.88rem] leading-relaxed max-w-2xl sm:text-[0.92rem] font-sans border-l-2 border-divider/60 pl-3.5 py-0.5 mt-1">
             {post.description}
           </p>
         )}
       </header>
 
       {/* TOC 同步 */}
-      <TOCUpdater toc={post.toc} />
+      <TOCUpdater toc={post.toc} title={post.title} />
 
       {/* 正文 */}
       <div id="article" className="article-detail mt-2 sm:mt-3">
@@ -154,12 +186,13 @@ export default async function PostPage({ params }: PageProps) {
       </div>
 
       {/* 上下文切换 */}
-      <div className="flex items-center justify-between gap-4 select-none mt-10 mb-6 px-1 border-t border-divider/40 pt-6 w-full">
+      <div className="flex items-center justify-between gap-2 select-none mt-6 mb-6 px-1 border-t border-divider/40 pt-6 w-full">
         {prevPost ? (
           <Link
             href={prevPost.permalink}
             aria-label={`上一篇: ${prevPost.title}`}
-            className="group flex items-center gap-2 max-w-[48%] transition-opacity"
+            title={prevPost.title}
+            className="group flex items-center gap-1.5 max-w-[48%] transition-opacity"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -176,7 +209,7 @@ export default async function PostPage({ params }: PageProps) {
               <path d="m15 18-6-6 6-6" />
             </svg>
             <div className="min-w-0">
-              <span className="text-[15px] sm:text-[16px] font-semibold text-foreground/80 group-hover:text-accent transition-colors truncate block">{prevPost.title}</span>
+              <span className="text-[13px] sm:text-[14px] font-medium text-foreground/80 group-hover:text-accent transition-colors truncate block">{prevPost.title}</span>
             </div>
           </Link>
         ) : (
@@ -187,10 +220,11 @@ export default async function PostPage({ params }: PageProps) {
           <Link
             href={nextPost.permalink}
             aria-label={`下一篇: ${nextPost.title}`}
-            className="group flex items-center justify-end gap-2 max-w-[48%] transition-opacity text-right ml-auto"
+            title={nextPost.title}
+            className="group flex items-center justify-end gap-1.5 max-w-[48%] transition-opacity text-right ml-auto"
           >
             <div className="min-w-0">
-              <span className="text-[15px] sm:text-[16px] font-semibold text-foreground/80 group-hover:text-accent transition-colors truncate block">{nextPost.title}</span>
+              <span className="text-[13px] sm:text-[14px] font-medium text-foreground/80 group-hover:text-accent transition-colors truncate block">{nextPost.title}</span>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"

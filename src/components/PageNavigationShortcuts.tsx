@@ -16,8 +16,12 @@ export default function PageNavigationShortcuts({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip navigation when a dialog/modal is open
+      if (document.querySelector('[role="dialog"]')) return;
+
       // 确保用户没有在 input, textarea 或 editable 元素中输入
-      const target = e.target as HTMLElement;
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||

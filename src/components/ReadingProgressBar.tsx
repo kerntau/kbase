@@ -6,17 +6,24 @@ export default function ReadingProgressBar() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = document.documentElement.clientHeight;
-      const totalScroll = scrollHeight - clientHeight;
-      
-      if (totalScroll > 0) {
-        const currentProgress = (scrollTop / totalScroll) * 100;
-        setProgress(Math.min(100, Math.max(0, currentProgress)));
-      } else {
-        setProgress(0);
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          const scrollHeight = document.documentElement.scrollHeight;
+          const clientHeight = document.documentElement.clientHeight;
+          const totalScroll = scrollHeight - clientHeight;
+
+          if (totalScroll > 0) {
+            const currentProgress = (scrollTop / totalScroll) * 100;
+            setProgress(Math.min(100, Math.max(0, currentProgress)));
+          } else {
+            setProgress(0);
+          }
+          ticking = false;
+        });
       }
     };
 

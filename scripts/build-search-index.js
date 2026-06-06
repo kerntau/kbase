@@ -23,13 +23,14 @@ function buildIndex() {
           .trim()
       : "";
 
+    const MAX_CONTENT_LENGTH = 5000;
     return {
       title: post.title,
       slug: post.slug,
       permalink: post.permalink,
       category: post.category || "",
       description: post.description || "",
-      content: cleanContent,
+      content: cleanContent.slice(0, MAX_CONTENT_LENGTH),
     };
   });
 

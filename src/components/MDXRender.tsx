@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 interface MDXRenderProps {
   content: string;
@@ -8,16 +8,50 @@ interface MDXRenderProps {
 
 export default function MDXRender({ content }: MDXRenderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const imagesRef = useRef<string[]>([]);
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
+  const [imageCount, setImageCount] = useState(0);
+
+  const goToImage = useCallback((delta: number) => {
+    setActiveImageIndex((prev) => {
+      if (prev === null || imagesRef.current.length === 0) return prev;
+      const next = (prev + delta + imagesRef.current.length) % imagesRef.current.length;
+      return next;
+    });
+  }, []);
+
+  // Derive active image URL and count from ref inside an effect (not during render)
+  useEffect(() => {
+    setImageCount(imagesRef.current.length);
+    if (activeImageIndex !== null) {
+      setActiveImageUrl(imagesRef.current[activeImageIndex] ?? null);
+    } else {
+      setActiveImageUrl(null);
+    }
+  }, [activeImageIndex, content]);
 
   useEffect(() => {
-    if (!activeImageUrl) return;
+    if (activeImageIndex === null) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActiveImageUrl(null);
+      if (e.key === "Escape") setActiveImageIndex(null);
+      if (e.key === "ArrowLeft") goToImage(-1);
+      if (e.key === "ArrowRight") goToImage(1);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeImageUrl]);
+  }, [activeImageIndex, goToImage]);
+
+  // Lock body scroll when lightbox is open
+  useEffect(() => {
+    if (activeImageIndex === null) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // Move focus to close button for keyboard accessibility
+    setTimeout(() => closeButtonRef.current?.focus(), 50);
+    return () => { document.body.style.overflow = prev; };
+  }, [activeImageIndex]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -26,21 +60,41 @@ export default function MDXRender({ content }: MDXRenderProps) {
     // Collect cleanup functions for event listeners
     const cleanups: (() => void)[] = [];
 
-    // ── 标题：自动注入 id（与 Velite TOC url 规则保持一致）────────
-    // Velite 使用 GitHub slug 规则：小写，空格→连字符，去除非字母数字字符
-    const slugify = (text: string): string =>
-      text
-        .toLowerCase()
-        .trim()
-        .replace(/[\s\./\\,:;?!()\[\]"']+/g, "-")
-        .replace(/--+/g, "-")
-        .replace(/^-+|-+$/g, "");
-
-    el.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => {
-      if (!heading.id) {
-        heading.id = slugify(heading.textContent ?? "");
+    // ── 事件委托：移动端代码块触摸事件统一监听 ────────────────
+    const handleContainerTouch = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const wrapper = target.closest?.(".code-block-wrapper");
+      if (!wrapper) {
+        // 点击非代码块区域时，隐藏所有复制按钮
+        el.querySelectorAll<HTMLButtonElement>(".copy-btn").forEach((btn) => {
+          btn.style.opacity = "";
+          btn.style.pointerEvents = "";
+        });
+        return;
       }
-    });
+      // 如果点击的是按钮本身，不处理
+      if (target.closest?.(".copy-btn")) return;
+      // 显示当前代码块的复制按钮
+      const btn = wrapper.querySelector<HTMLButtonElement>(".copy-btn");
+      if (btn) {
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "auto";
+      }
+      // 隐藏其他代码块的复制按钮
+      el.querySelectorAll<HTMLDivElement>(".code-block-wrapper").forEach((otherWrapper) => {
+        if (otherWrapper !== wrapper) {
+          const otherBtn = otherWrapper.querySelector<HTMLButtonElement>(".copy-btn");
+          if (otherBtn) {
+            otherBtn.style.opacity = "";
+            otherBtn.style.pointerEvents = "";
+          }
+        }
+      });
+    };
+    document.addEventListener("touchstart", handleContainerTouch, { passive: true });
+    cleanups.push(() => document.removeEventListener("touchstart", handleContainerTouch));
+
+    // ── 标题：rehype-slug 与 rehype-autolink-headings 在构建时已处理 ────────
 
     // ── 表格：添加横向滚动容器 ──────────────────────────
     el.querySelectorAll("table").forEach((table) => {
@@ -52,53 +106,167 @@ export default function MDXRender({ content }: MDXRenderProps) {
       wrapper.appendChild(table);
     });
 
-    // ── 代码块：样式 + 复制按钮 ──────────────────────────
-    el.querySelectorAll("pre").forEach((pre) => {
-      // 基础样式
-      pre.classList.add(
-        "relative", "overflow-x-auto", "group",
-        "p-4", "my-6", "text-sm",
-        "bg-muted/40",
-        "border", "border-divider",
-        "text-foreground/90",
-        "select-text"
-      );
+    // ── 事件委托：容器级 click 事件监听复制功能 ────────────────
+    const handleContainerClick = async (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const btn = target.closest(".copy-btn") as HTMLButtonElement | null;
+      if (!btn) return;
 
-      // 避免重复添加按钮
-      if (pre.querySelector(".copy-btn")) return;
+      e.preventDefault();
+      e.stopPropagation();
 
-      const btn = document.createElement("button");
-      btn.className =
-        "copy-btn absolute top-2.5 right-2.5 text-[10px] font-mono " +
-        "text-foreground/45 border border-divider " +
-        "px-2 py-0.5 rounded-sm bg-background/90 " +
-        "opacity-100 md:opacity-0 md:group-hover:opacity-100 " +
-        "hover:text-foreground hover:border-foreground/40 " +
-        "transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) cursor-pointer select-none active:scale-[0.93]";
-      btn.textContent = "Copy";
-      btn.setAttribute("aria-label", "Copy code");
+      const wrapper = btn.closest(".code-block-wrapper");
+      if (!wrapper) return;
 
-      const handleCopy = async () => {
-        const code =
-          pre.querySelector("code")?.textContent ?? pre.textContent ?? "";
-        try {
-          await navigator.clipboard.writeText(code.trim());
-          btn.textContent = "Copied!";
-          btn.classList.add("text-accent", "border-accent/50", "shadow-sm", "shadow-accent/10", "scale-[1.03]");
-        } catch {
-          btn.textContent = "Error";
+      const pre = wrapper.querySelector("pre");
+      if (!pre) return;
+
+      const code = pre.querySelector("code")?.textContent ?? pre.textContent ?? "";
+      const textToCopy = code.trim();
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(textToCopy);
+        } else {
+          // Fallback 兼容局域网裸 IP / 非 HTTPS 环境
+          const textArea = document.createElement("textarea");
+          textArea.value = textToCopy;
+          textArea.style.position = "absolute";
+          textArea.style.left = "-9999px";
+          textArea.style.top = "0";
+          textArea.setAttribute("readonly", ""); // 防止 iOS 弹出软键盘
+          document.body.appendChild(textArea);
+
+          // 兼容 iOS 选择范围
+          const isiOS = navigator.userAgent.match(/ipad|iphone/i);
+          if (isiOS) {
+            const range = document.createRange();
+            range.selectNodeContents(textArea);
+            const selection = window.getSelection();
+            if (selection) {
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+            textArea.setSelectionRange(0, 999999);
+          } else {
+            textArea.select();
+          }
+
+          const successful = document.execCommand("copy");
+          document.body.removeChild(textArea);
+          if (!successful) {
+            throw new Error("execCommand copy failed");
+          }
         }
+
+        const originalText = btn.textContent;
+        btn.textContent = "Copied";
+        btn.classList.add("!text-emerald-500");
         setTimeout(() => {
-          btn.textContent = "Copy";
-          btn.classList.remove("text-accent", "border-accent/50", "shadow-sm", "shadow-accent/10", "scale-[1.03]");
+          btn.textContent = originalText;
+          btn.classList.remove("!text-emerald-500");
         }, 1800);
-      };
+      } catch (err) {
+        console.error("Copy failed:", err);
+        const originalText = btn.textContent;
+        btn.textContent = "Error";
+        btn.classList.add("!text-rose-500");
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove("!text-rose-500");
+        }, 1800);
+      }
+    };
+    el.addEventListener("click", handleContainerClick);
+    cleanups.push(() => el.removeEventListener("click", handleContainerClick));
 
-      btn.addEventListener("click", handleCopy);
-      cleanups.push(() => btn.removeEventListener("click", handleCopy));
+    // ── 代码块：样式 + 复制按钮 (适配 rehype-pretty-code) ────────────────
+    el.querySelectorAll("figure[data-rehype-pretty-code-figure]").forEach((figure) => {
+      // 自适应幂等防重：如果已经注入过复制按钮，直接跳过
+      if (figure.querySelector(".copy-btn")) return;
 
-      pre.appendChild(btn);
+      // 1. 设置 figure wrapper 样式
+      figure.className =
+        "code-block-wrapper relative my-5 flex flex-col " +
+        "border border-divider/40 rounded-lg overflow-hidden bg-[#282c34] shadow-sm select-text";
+
+      const pre = figure.querySelector("pre");
+      if (!pre) return;
+
+      // 2. 清理并设置内部 pre 样式，让 wrapper 统一边框和背景
+      pre.className = "overflow-x-auto text-[14px] sm:text-[15px] scrollbar-thin !m-0 !py-4 !bg-transparent";
+      pre.style.border = "none";
+      pre.style.borderRadius = "0";
+
+      const lang = pre.getAttribute("data-language") || "text";
+
+      // 3. 创建复制按钮
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "copy-btn text-[10px] font-mono font-medium text-foreground/40 hover:text-foreground/75 " +
+        "transition-all duration-200 cursor-pointer active:scale-95 px-1.5 py-0.5 rounded hover:bg-foreground/5";
+      btn.textContent = "Copy";
+      btn.setAttribute("aria-label", "复制代码");
+
+      // 4. 判断并丰富 Header 顶栏
+      const figcaption = figure.querySelector("figcaption");
+      if (figcaption) {
+        // 有文件名
+        figcaption.className = "flex items-center justify-between px-3 py-1.5 border-b border-divider/30 bg-muted/20 select-none text-[10px] font-mono font-semibold text-foreground/40";
+        
+        // 创建左侧群组 (小圆点 + 文件名)
+        const leftGroup = document.createElement("div");
+        leftGroup.className = "flex items-center gap-2.5";
+
+        const dots = document.createElement("div");
+        dots.className = "flex items-center gap-1.5";
+        dots.innerHTML = `
+          <div class="w-[9px] h-[9px] rounded-full bg-red-400/70"></div>
+          <div class="w-[9px] h-[9px] rounded-full bg-amber-400/70"></div>
+          <div class="w-[9px] h-[9px] rounded-full bg-emerald-400/70"></div>
+        `;
+        leftGroup.appendChild(dots);
+
+        // 文件名标签
+        const fileNameSpan = document.createElement("span");
+        fileNameSpan.className = "text-[10px] font-mono font-semibold text-foreground/45 uppercase tracking-wider";
+        fileNameSpan.textContent = figcaption.textContent || "";
+        leftGroup.appendChild(fileNameSpan);
+
+        figcaption.innerHTML = "";
+        figcaption.appendChild(leftGroup);
+        figcaption.appendChild(btn);
+      } else {
+        // 无文件名，创建一个极简顶栏
+        const header = document.createElement("div");
+        header.className = "flex items-center justify-between px-3 py-1.5 border-b border-divider/30 bg-muted/20 select-none";
+
+        const leftGroup = document.createElement("div");
+        leftGroup.className = "flex items-center gap-2.5";
+
+        const dots = document.createElement("div");
+        dots.className = "flex items-center gap-1.5";
+        dots.innerHTML = `
+          <div class="w-[9px] h-[9px] rounded-full bg-red-400/70"></div>
+          <div class="w-[9px] h-[9px] rounded-full bg-amber-400/70"></div>
+          <div class="w-[9px] h-[9px] rounded-full bg-emerald-400/70"></div>
+        `;
+        leftGroup.appendChild(dots);
+
+        const langLabel = document.createElement("span");
+        langLabel.className = "text-[10px] font-mono font-semibold text-foreground/45 uppercase tracking-widest";
+        langLabel.textContent = lang;
+        leftGroup.appendChild(langLabel);
+
+        header.appendChild(leftGroup);
+        header.appendChild(btn);
+
+        // 插入在 pre 之前
+        figure.insertBefore(header, pre);
+      }
     });
+
 
     // ── 提示框 (Alert / Callout)：将 > [!NOTE] 转化为美观的卡片 ────
     el.querySelectorAll("blockquote").forEach((bq) => {
@@ -113,7 +281,7 @@ export default function MDXRender({ content }: MDXRenderProps) {
           .trim();
 
         bq.innerHTML = cleanHtml;
-        bq.className = "my-6 p-4.5 border-l-4 rounded-r-sm select-text transition-all duration-300 font-sans text-sm leading-relaxed";
+        bq.className = "my-6 p-4.5 border-l-4 rounded-r-sm select-text transition-all duration-300 ease-out font-sans text-sm leading-relaxed hover:-translate-y-px hover:shadow-sm";
 
         if (type === "NOTE") {
           bq.classList.add("bg-blue-500/[0.03]", "border-blue-500/80", "text-foreground/90", "dark:bg-blue-400/[0.02]");
@@ -131,7 +299,7 @@ export default function MDXRender({ content }: MDXRenderProps) {
 
     // ── 提示折叠卡片 (details/summary)：习题与解析卡片化 ────────
     el.querySelectorAll("details").forEach((details) => {
-      details.className = "my-5 border border-divider/50 rounded-sm bg-foreground/[0.003] dark:bg-white/[0.002] overflow-hidden transition-all duration-300";
+      details.className = "my-5 border border-divider/50 rounded-sm bg-foreground/[0.003] dark:bg-white/[0.002] overflow-hidden transition-all duration-300 ease-out hover:border-divider hover:shadow-[0_2px_10px_rgba(0,0,0,0.02)]";
 
       const summary = details.querySelector("summary");
       if (summary) {
@@ -163,11 +331,15 @@ export default function MDXRender({ content }: MDXRenderProps) {
     });
 
     // ── 图片灯箱 (Lightbox)：点击图片进行大图毛玻璃放大 ────────
+    const allImages = Array.from(el.querySelectorAll("img")).map((img) => img.src);
+    imagesRef.current = allImages;
+
     el.querySelectorAll("img").forEach((img) => {
       img.style.cursor = "zoom-in";
 
       const handleClick = () => {
-        setActiveImageUrl(img.src);
+        const idx = allImages.indexOf(img.src);
+        setActiveImageIndex(idx >= 0 ? idx : 0);
       };
 
       img.addEventListener("click", handleClick);
@@ -178,7 +350,7 @@ export default function MDXRender({ content }: MDXRenderProps) {
     return () => {
       cleanups.forEach((fn) => fn());
     };
-  }, [content, setActiveImageUrl]);
+  }, [content, setActiveImageIndex]);
 
   return (
     <>
@@ -188,14 +360,13 @@ export default function MDXRender({ content }: MDXRenderProps) {
           "article-detail prose dark:prose-invert max-w-none",
           "prose-headings:font-sans prose-headings:font-semibold prose-headings:tracking-tight",
           "prose-h1:text-3xl prose-h1:mb-8",
-          "prose-h2:border-b prose-h2:border-divider prose-h2:pb-2",
+          "prose-h2:pb-2",
           "prose-p:text-foreground/80",
           "prose-a:no-underline prose-a:border-b prose-a:border-divider",
           "prose-a:transition-colors prose-a:duration-150",
           "hover:prose-a:border-foreground",
           "prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6",
           "prose-li:text-foreground/80",
-          "prose-blockquote:border-l-2 prose-blockquote:border-divider",
           "prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-foreground/50",
           "prose-blockquote:not-italic",
           "prose-table:w-full prose-table:text-sm prose-table:text-left",
@@ -206,32 +377,69 @@ export default function MDXRender({ content }: MDXRenderProps) {
           "prose-code:bg-muted/60",
           "prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-sm prose-code:text-[0.85em]",
           "prose-code:font-mono prose-code:before:content-none prose-code:after:content-none",
+          "[&_pre_code]:!text-[1em] [&_pre_code]:!bg-transparent [&_pre_code]:!p-0",
           "selection:bg-accent/20"
         ].join(" ")}
         dangerouslySetInnerHTML={{ __html: content }}
       />
 
       {/* 极简磨砂大图 Lightbox 弹出层 */}
-      {activeImageUrl && (
+      {activeImageIndex !== null && activeImageUrl && (
         <div
-          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center cursor-pointer"
-          onClick={() => setActiveImageUrl(null)}
-          onKeyDown={(e) => e.key === "Escape" && setActiveImageUrl(null)}
+          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center animate-fade-in"
+          onClick={() => setActiveImageIndex(null)}
           role="dialog"
           aria-label="图片预览"
           tabIndex={-1}
         >
           <button
-            className="absolute top-4 right-4 text-white text-3xl hover:opacity-70 transition-opacity cursor-pointer"
-            onClick={() => setActiveImageUrl(null)}
+            type="button"
+            ref={closeButtonRef}
+            className="absolute top-4 right-4 w-11 h-11 flex items-center justify-center text-white/80 hover:text-white transition-colors rounded-full hover:bg-white/10"
+            onClick={(e) => { e.stopPropagation(); setActiveImageIndex(null); }}
             aria-label="关闭预览"
           >
-            ✕
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
+
+          {/* 左箭头 */}
+          {imageCount > 1 && (
+            <button
+              type="button"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/10"
+              onClick={(e) => { e.stopPropagation(); goToImage(-1); }}
+              aria-label="上一张图片"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          )}
+
+          {/* 右箭头 */}
+          {imageCount > 1 && (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/10"
+              onClick={(e) => { e.stopPropagation(); goToImage(1); }}
+              aria-label="下一张图片"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          )}
+
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={activeImageUrl}
             alt="放大预览"
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-full object-contain transition-opacity duration-200 opacity-100"
+            onLoad={(e) => { e.currentTarget.style.opacity = "1"; }}
+            style={{ opacity: 0 }}
           />
         </div>
       )}

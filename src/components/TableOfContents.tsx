@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
-import { useUI } from "@/context/UIContext";
-
-export interface VeliteTocItem {
-  title: string;
-  url: string;
-  items: VeliteTocItem[];
-}
+import { useUI, VeliteTocItem } from "@/context/UIContext";
 
 interface TableOfContentsProps {
   toc: VeliteTocItem[];
@@ -133,9 +127,9 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
     if (el) {
       isClickScrollingRef.current = true;
       setActiveId(url);
-      
+
       const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
-      window.scrollTo({ top, behavior: "smooth" });
+      window.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       window.history.pushState(null, "", url);
       setIsMobileTOCOpen(false);
 
@@ -172,10 +166,10 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
 
   return (
     <div className="w-full flex flex-col py-4 select-none">
-      <h3 className="text-[10px] font-bold tracking-widest text-foreground/45 uppercase px-2 mb-3">
+      <h3 className="text-[11px] font-bold tracking-widest text-foreground/45 uppercase px-2 mb-2">
         On This Page
       </h3>
-      <div className="flex flex-col gap-0.5 border-l border-divider">
+      <div className="flex flex-col border-l border-divider">
         {flatToc.map((item) => {
           const isActive = activeId === item.url;
           const pl =
@@ -186,10 +180,10 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
               key={item.url}
               href={item.url}
               onClick={(e) => handleLinkClick(e, item.url)}
-              className={`-ml-px border-l text-xs py-0.5 pr-2 transition-all duration-150 focus:outline-none ${pl} ${
+              className={`block -ml-px border-l text-[12px] py-0.5 pr-2 transition-all duration-150 focus:outline-none ${pl} ${
                 isActive
                   ? "border-foreground font-semibold text-foreground"
-                  : "border-transparent text-foreground/45 hover:text-foreground hover:border-divider"
+                  : "border-transparent text-foreground/50 hover:text-foreground hover:border-divider"
               }`}
             >
               <span className="block truncate leading-snug">{item.title}</span>

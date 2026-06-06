@@ -1,6 +1,6 @@
-# 序栈 · XSTACK
+# SEQUENCE.STACK 
 
-<p align="center">
+<p align="left">
   <a href="https://nextjs.org">
     <img src="https://img.shields.io/badge/Next.js-16.2.6--Turbopack-000000?style=flat-square&logo=next.js" alt="Next.js">
   </a>
@@ -18,122 +18,192 @@
   </a>
 </p>
 
----
+> 代码即逻辑，边界即安全。
 
-## 📖 简介
-
-**序栈（XStack）** 是一个专注于**计算机底层原理、系统安全对抗与现代架构演进**的轻量级技术知识库。
-
-本站致力于抛弃互联网浮躁的碎片化信息，以理性、中性的视角，留存最严谨的白纸黑字逻辑推演与工程代码沉淀。系统采用全静态导出（SSG）架构，确保极致的响应速度、高品质的排版设计和沉浸式的阅读体验。
+**序栈（Sequence Stack）** 是一个专注于计算机底层原理、系统安全对抗与架构演进的技术储备库。系统全面摒弃了过度工程化的渲染框架，以极简主义、硬核美学为基调，基于 **Next.js App Router** 构建了具备亚毫秒级检索、混合服务端渲染及冷感排版系统的极速文档平台。
 
 ---
 
-## ⚡ 核心设计与交互特性
+## 01. CORE ARCHITECTURE
 
-### 🔍 亚毫秒级中文全文检索
-- **中英混合分词**：基于 `FlexSearch` 定制研发了中文单字与英文单词混合切分的高性能分词算法，大幅提升中文短语的召回率与准确度。
-- **120ms 输入防抖**：对高频输入流实施防抖处理，避免频繁渲染阻塞浏览器主线程。
-- **关键词高亮与滚动锚定**：采用 `mark` 动态渲染匹配文本，支持键盘 `↑` `↓` 键平滑滚动聚焦选项。
+本系统采用 `Velite` 构建数据抽象树，将源文件夹下的 `MDX` 实时序列化为强类型内存对象，并交由 `Next.js` 编译器进行 Server Component 直出渲染。
 
-### 📚 学术级极致排版系统
-- **知性配色体系**：深度融合明快温润的浅蓝（Teal/Cyan）色系，支持深/浅色模式自适应切换。
-- **字体合成保护**：应用 `font-synthesis: style` 属性，强制禁止浏览器低质量合成非原生中文字体，同时解决了 SVG 图标被浏览器强行加粗变形的排版隐患。
-- **呼吸感版心控制**：段落行高收紧至 `1.72`，标题字号根据排版密度进行黄金比例缩减，在大屏下正文版心严格控制在 `820px`，呈现严肃且舒适的阅读质感。
+```mermaid
+graph TD
+    subgraph Data Pipeline
+        A[content/**/*.mdx] -->|Velite Compiler| B(Type-safe JSON)
+        A -->|MDX Parser| C(Pre-rendered HTML & TOC)
+    end
+    
+    subgraph Build Scripts
+        B --> D[FlexSearch Indexer]
+        D --> E((search-index.json))
+        B --> F[Sitemap Generator]
+    end
 
-### 🖱️ 沉浸式阅读交互
-- **左右方向键导航**：在非输入状态下，可直接通过键盘 `←` 和 `→` 方向键，无缝且顺畅地在“上一篇”与“下一篇”技术推演之间进行翻页。
-- **防抖大纲追踪 (TOC)**：具备防抖锁定的 TOC 滚动定位。点击大纲锚点时自动加锁，过滤掉跳转中间过程的干扰高亮；在组件销毁时提供完整的垃圾清理，避免 scrollend 内存残留。
-- **极简底部导航**：重构并精简了底部的导航卡片，大幅压缩物理高度，在第一篇或最后一篇时自动在移动端隐去空白虚线框，释放小屏高度空间。
-
-### 🎨 工业级视觉细节
-- **高通透磨砂玻璃**：官网 Bento 栅格及侧边栏采用低圆角、高通透度的磨砂玻璃效果，搭配中心向外渐隐的 `40px` 细网格工业背景。
-- **阻尼感物理特效**：交互按钮与看板链接在悬停时支持 `will-change` 硬件加速，伴有浅蓝色外发光、小图标弹性旋转及 `1px` 跟手平移。
-- **扩展 MDX 渲染**：支持 GitHub Alerts (Note, Tip, Warning...) 解析渲染；拦截原生 `details/summary` 实现平滑的展开折叠卡片；自研基于毛玻璃背景的零依赖图片放大灯箱 (Lightbox)。
-
----
-
-## 🛠️ 技术架构
-
-系统采用纯静态构建管线，实现了从 markdown 源码到全量静态托管服务的极简流转：
-
-```text
-  Markdown 源码 (content/)
-         │
-         ▼
-  Velite 静态解析 (.velite/) ────► 编译生成文档 HTML、TOC、元数据
-         │
-         ▼
-  检索索引脚本 (scripts/) ──────► 抽取高频词生成 FlexSearch 序列化索引
-         │
-         ▼
-  Next.js 编译导出 (out/) ──────► 输出纯静态资源，支持任何静态托管平台
+    subgraph Runtime
+        C --> G[Next.js App Router]
+        G -->|SSR / SSG| H[Optimized DOM]
+        E -.->|Lazy Load| I[Client Search UI]
+    end
 ```
 
 ---
 
-## 📂 项目结构规范
+## 02. FEATURES MATRIX
 
-```text
-.
-├── content/                # 知识库技术源文档 (Markdown / MDX)
-│   ├── backend/            # 后端架构与分布式系统推演
-│   ├── database/           # 数据库设计、索引与事务分析
-│   ├── devops/             # 基础设施建设与持续集成交付
-│   ├── frontend/           # 前端底层机制与现代全栈演进
-│   └── security/           # 网络安全对抗、系统底层与边界防御
-├── scripts/                # 构建辅助脚本
-│   └── build-search-index.js # 自动化检索索引生成脚本
-├── src/                    # 应用程序源代码
-│   ├── app/                # App Router 路由节点与全局样式
-│   ├── components/         # 核心交互组件 (Search, MDXRender, TOC 等)
-│   ├── context/            # 全局 UI 状态上下文 (侧栏折叠、弹窗等)
-│   └── utils/              # 目录树组装等辅助算法
-├── velite.config.ts        # Velite 强类型 Schema 定义与配置
-├── next.config.ts          # Next.js 静态打包编译配置
-└── package.json            # 项目依赖声明与运行脚本
+| 模块类别 | 核心技术点 | 架构实现细节 |
+| :--- | :--- | :--- |
+| **全文检索** | 内存级倒排索引 | 基于 `FlexSearch`，预编译纯文本提取，支持中英混合无截断分词与 120ms 防抖高亮渲染。 |
+| **渲染管线** | RSC 优先 | 剥离无意义的 Client Boundary，页面骨架由 React Server Components 承担，实现零 JS 封顶。 |
+| **字体排印** | 引擎抗锯齿与栅格 | 注入 `font-synthesis: style` 保护，段落行高锁定 `1.72`，最大阅读版心 `820px`。 |
+| **微交互** | 物理阻尼与缓动 | 引入 `GSAP` 与 CSS 硬件加速 (`will-change`)，构建拟物玻璃卡片与边缘微光动态效果。 |
+| **内容解析** | GitHub Alerts | 拓展原生 MDX，支持 `[!NOTE]` / `[!WARNING]` 等警戒块，并在服务端拦截解析为独立 UI。 |
+
+---
+
+## 03. DEPLOYMENT PIPELINE
+
+系统被设计为高度解耦的状态，支持从 Serverless 到原生 Node.js 的任何主流交付协议。以下为全场景完整部署指南。
+
+### METHOD A: PM2 守护 Node.js 运行时 (推荐)
+
+此模式保留了最优的动态路由与 `next/image` 图片实时裁切优化功能，适合 VPS 或独立物理主机。
+
+```bash
+# 1. 依赖挂载与全量构建
+pnpm install
+pnpm build
+
+# 2. 通过 PM2 编排常驻进程
+pm2 start npm --name "xstack-core" -- start
+```
+
+### METHOD B: Docker 容器化编排
+
+适用于基于 Kubernetes 或单纯 Docker-Compose 的微服务矩阵管理，环境绝对隔离。
+
+创建 `Dockerfile`：
+```dockerfile
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
+RUN pnpm build
+
+FROM node:18-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+构建与下发：
+```bash
+docker build -t sequence-stack:v1 .
+docker run -d -p 3000:3000 --name xstack sequence-stack:v1
+```
+
+### METHOD C: 纯静态资产切片输出 (SSG)
+
+适用于 GitHub Pages、Cloudflare Pages 等边缘节点，或完全交由 Nginx 托管静态资源。
+> [!WARNING]
+> 静态降级代价：此模式下所有的动态图片裁剪优化 (`next/image`) 将被关闭，返回原始尺寸图像。
+
+```bash
+# 强制触发 SSG 路由树穷举
+EXPORT_STATIC=1 pnpm build
+```
+编译结束后，将自动生成的 `out/` 文件夹同步至目标对象存储或边缘 CDN 即可。
+
+---
+
+## 04. INFRASTRUCTURE & ROUTING
+
+### NGINX 反向代理基准配置
+
+若采用 **METHOD A / B** 部署，强烈推荐使用 Nginx 作为 SSL 卸载与反向代理网关。以下为标准的工业级防护配置：
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name docs.yourdomain.com;
+
+    # 证书挂载
+    ssl_certificate     /etc/nginx/ssl/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/key.pem;
+
+    # 安全握手协议与嗅探防御
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options DENY;
+    add_header X-XSS-Protection "1; mode=block";
+
+    # GZIP 压缩策略
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        
+        # 维持 Next.js 极度依赖的 WebSocket 长连接 (HMR 与 Turbopack)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # 路由拓扑透传
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 ```
 
 ---
 
-## 🚀 开发者与部署指南
+## 05. DEVELOPMENT & ENVIRONMENT
 
-### 本地开发
+<details>
+<summary>展开查看开发模式与系统变量定义</summary>
 
-1. **环境准备**：
-   确保安装 Node.js (v18+) 与 pnpm 包管理器。
+### 系统运行变量表
 
-2. **安装依赖**：
-   ```bash
-   pnpm install
-   ```
+| ENV KEY | 取值域 | 默认值 | 作用流向 |
+| :--- | :--- | :--- | :--- |
+| `EXPORT_STATIC` | `1` 或 `undefined` | 缺省 | 控制 Next.js 编译器是否将整个项目坍缩为纯 HTML 切片 |
+| `PORT` | `1024-65535` | `3000` | 运行时对外暴露的网络端口 |
+| `NODE_ENV` | `development` / `production` | `development` | 控制 React 的 Strict Mode 与各类运行时 Assert 级别 |
 
-3. **启动开发服务器**：
-   此命令会同时拉起 Velite 内容热重载监听器与 Next.js 开发服务器。
-   ```bash
-   pnpm dev
-   ```
-   打开浏览器访问 [http://localhost:3000](http://localhost:3000)。
+### 工程命令拓扑
 
-### 生产静态导出
+```bash
+# 安装系统依赖树
+pnpm install
 
-1. **静态打包构建**：
-   ```bash
-   pnpm build
-   ```
-   运行该命令后，系统将依次进行数据集解析、FlexSearch 索引文件生成、TS 类型静态校验，并在项目根目录下生成 `out/` 目录。
+# 激活含有热更新 (HMR) 机制的 Turbopack 编译沙箱
+pnpm dev
 
-2. **线上部署**：
-   直接将 `out/` 文件夹中的静态页面和资源上传至 Nginx、GitHub Pages、Cloudflare Pages 或 Vercel 即可。
+# 执行强类型的原子化代码审查
+pnpm lint
+
+# 启动全管线的生产资产打包
+pnpm build
+```
+
+</details>
 
 ---
 
-## 📜 提交与工程纪律
+## 06. COMMIT PROTOCOLS
 
-本项目严格遵守工程约束，保证代码的可维护性与提交历史的纯净：
+本开源分支维护者必须遵循硬核工程契约：
 
-- **变更验证**：所有功能迭代在提交前必须本地通过 `pnpm build` 全量静态编译。
-- **Git 提交格式**：严格使用 Angular 格式进行原子化提交：
-  ```text
-  <type>(<scope>): <subject>
-  ```
-  *示例：`fix(search): 修复中文全文检索分词器 TS 类型报错`*
+- **变更禁区**：禁止使用粗粒度的 `git commit -m "update"`，需明确指向作用域，如 `refactor(mdx): 重构灯箱算法`。
+- **验证墙**：向 `main` 推送前必须无错误穿透 `pnpm build` 与 `pnpm lint` 审查。
+
+> END OF FILE // V1.0.0

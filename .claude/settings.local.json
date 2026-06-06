@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build:*)",
+      "Bash(ls \"C:/Users/Chen/Desktop/Github/Knowledge Base/src/app/\\(app\\)/\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npx tsc:*)"
+    ]
+  },
+  "disabledMcpjsonServers": [
+    "minimax"
+  ]
+}

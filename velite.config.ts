@@ -1,3 +1,6 @@
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypePrettyCode from "rehype-pretty-code";
 import { defineConfig, s } from "velite";
 
 export default defineConfig({
@@ -20,8 +23,20 @@ export default defineConfig({
           date: s.isodate().optional(),
           category: s.string().optional(),
           description: s.string().optional(),
-          content: s.markdown(), // 编译为 HTML
-          toc: s.toc(), // 自动生成大纲
+          content: s.markdown({
+            rehypePlugins: [
+              rehypeSlug,
+              [
+                rehypePrettyCode,
+                {
+                  theme: "one-dark-pro",
+                  keepBackground: true,
+                },
+              ],
+              [rehypeAutolinkHeadings, { behavior: "wrap", properties: { className: ["heading-link"] } }],
+            ],
+          }),
+          toc: s.toc(),
         })
         .transform(data => ({ ...data, permalink: `/kb/posts/${data.slug}` })),
     },

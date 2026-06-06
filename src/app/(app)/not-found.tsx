@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Search, LayoutTemplate, ChevronRight } from "lucide-react";
 import { posts } from "#content";
-import { sortByDate, categoryMap } from "@/utils/tree";
+import { sortByDate } from "@/lib/tree";
+import { categoryMap } from "@/lib/constants";
 
 export default function AppNotFound() {
   const recentPosts = sortByDate(posts.map((p) => ({ ...p, date: p.date ?? "" }))).slice(0, 3);

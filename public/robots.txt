@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://xstack.cn/sitemap.xml
+Sitemap: https://cot.wiki/sitemap.xml

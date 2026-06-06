@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,7 +10,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { useUI } from "@/context/UIContext";
-import { TreeNode } from "@/utils/tree";
+import { TreeNode } from "@/lib/tree";
 
 interface SidebarProps {
   tree: TreeNode[];
@@ -21,10 +21,24 @@ function normalizePath(p: string) {
   return p.replace(/\/+$/, "").toLowerCase();
 }
 
+function hasMatchingDescendant(node: TreeNode, filter: string): boolean {
+  if (!filter) return true;
+  const lower = filter.toLowerCase();
+  const nodeTitle = (node.title ?? node.name).toLowerCase();
+  if (nodeTitle.includes(lower)) return true;
+  if (node.children) {
+    return node.children.some((child) => hasMatchingDescendant(child, filter));
+  }
+  return false;
+}
+
 export default function Sidebar({ tree }: SidebarProps) {
   const pathname = usePathname();
-  const { expandedNodes, toggleNode, expandNode, setIsMobileSidebarOpen } = useUI();
+  const { expandedNodes, toggleNode, expandNode, sidebarFilter, setIsMobileSidebarOpen } = useUI();
   const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
+
+  // 缓存规范化路径，避免在多处重复计算
+  const normalizedPathname = useMemo(() => normalizePath(decodeURIComponent(pathname)), [pathname]);
 
   // 路径改变后，自动滚动居中当前激活项
   useEffect(() => {
@@ -37,12 +51,12 @@ export default function Sidebar({ tree }: SidebarProps) {
       }, 180);
       return () => clearTimeout(timer);
     }
-  }, [pathname]);
+  }, [normalizedPathname]);
 
 
   // 当前路径变化时，自动展开所有祖先文件夹
   useEffect(() => {
-    const active = normalizePath(decodeURIComponent(pathname));
+    const active = normalizedPathname;
 
     const findAndExpand = (nodes: TreeNode[], ancestors: string[]): boolean => {
       for (const node of nodes) {
@@ -60,13 +74,22 @@ export default function Sidebar({ tree }: SidebarProps) {
     };
 
     findAndExpand(tree, []);
-  }, [pathname, tree, expandNode]);
+  }, [normalizedPathname, tree, expandNode]);
 
-  const renderTree = useCallback((nodes: TreeNode[], depth = 0) => {
-    return nodes.map((node) => {
-      const isExpanded = !!expandedNodes[node.path];
+  const renderTree = (nodes: TreeNode[], depth = 0): React.ReactNode => {
+    return nodes
+      .filter((node) => {
+        if (!sidebarFilter) return true;
+        return hasMatchingDescendant(node, sidebarFilter);
+      })
+      .map((node) => {
+      // Auto-expand folder nodes that have matching descendants when filtering
+      const filterActive = sidebarFilter.length > 0;
+      const isExpanded = filterActive
+        ? (node.isFolder && hasMatchingDescendant(node, sidebarFilter))
+        : !!expandedNodes[node.path];
       const indent = { paddingLeft: `${depth * 14 + 8}px` };
-      const active = normalizePath(decodeURIComponent(pathname));
+      const active = normalizedPathname;
 
       if (node.isFolder) {
         return (
@@ -74,7 +97,7 @@ export default function Sidebar({ tree }: SidebarProps) {
             <button
               onClick={() => toggleNode(node.path)}
               style={indent}
-              className="group flex w-full items-center gap-2 py-1.5 pr-2 text-left text-sm rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/[0.04] dark:hover:bg-foreground/[0.08] transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 select-none"
+              className="group flex w-full items-center gap-2 min-h-[36px] md:min-h-[32px] py-1.5 pr-2 text-left text-sm rounded-md text-foreground/60 hover:text-foreground hover:bg-foreground/[0.04] dark:hover:bg-foreground/[0.08] transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 select-none"
               aria-expanded={isExpanded}
             >
               <span className="text-foreground/40 shrink-0 transition-transform duration-200" style={{ transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>
@@ -114,9 +137,9 @@ export default function Sidebar({ tree }: SidebarProps) {
             onClick={() => setIsMobileSidebarOpen(false)}
             ref={isActive ? activeLinkRef : undefined}
             style={indent}
-            className={`relative flex items-center gap-2 py-1.5 pr-2 text-sm rounded-md transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 ${
+            className={`relative flex items-center gap-2 min-h-[36px] md:min-h-[32px] py-1.5 pr-2 text-sm rounded-md transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 ${
               isActive
-                ? "font-semibold text-foreground bg-foreground/[0.06] dark:bg-foreground/[0.12] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-foreground before:rounded-r-md"
+                ? "font-semibold text-foreground bg-foreground/[0.06] dark:bg-foreground/[0.12] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:bg-accent before:rounded-full"
                 : "text-foreground/60 hover:text-foreground hover:bg-foreground/[0.04] dark:hover:bg-foreground/[0.08]"
             }`}
             aria-current={isActive ? "page" : undefined}
@@ -132,7 +155,7 @@ export default function Sidebar({ tree }: SidebarProps) {
         );
       }
     });
-  }, [expandedNodes, pathname, toggleNode, setIsMobileSidebarOpen]);
+  };
 
   return (
     <nav className="w-full flex flex-col gap-0.5 py-4 select-none" aria-label="Document tree">

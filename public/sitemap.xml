@@ -1,318 +1,321 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://xstack.cn/</loc>
+    <loc>https://cot.wiki/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <lastmod>2026-06-06</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/</loc>
+    <loc>https://cot.wiki/kb/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <lastmod>2026-06-06</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/manifesto/</loc>
+    <loc>https://cot.wiki/manifesto/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+    <lastmod>2026-06-06</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/api-gateway-design/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/api-gateway-design/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/ddd-in-practice/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/ddd-in-practice/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/distributed-lock/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/distributed-lock/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/go-concurrent-architecture/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/go-concurrent-architecture/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/grpc-communication/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/grpc-communication/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/microservice-discovery/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/microservice-discovery/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/mq-selection-guide/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/mq-selection-guide/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/nestjs-module-design/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/nestjs-module-design/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/rate-limiting-algorithms/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/rate-limiting-algorithms/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/backend/springboot-optimization/</loc>
+    <loc>https://cot.wiki/kb/posts/backend/springboot-optimization/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/cassandra-architecture/</loc>
+    <loc>https://cot.wiki/kb/posts/database/cassandra-architecture/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/db-sharding-practice/</loc>
+    <loc>https://cot.wiki/kb/posts/database/db-sharding-practice/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/elasticsearch-index-design/</loc>
+    <loc>https://cot.wiki/kb/posts/database/elasticsearch-index-design/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/mongodb-sharding-cluster/</loc>
+    <loc>https://cot.wiki/kb/posts/database/mongodb-sharding-cluster/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/mysql-index-optimization/</loc>
+    <loc>https://cot.wiki/kb/posts/database/mysql-index-optimization/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/neo4j-getting-started/</loc>
+    <loc>https://cot.wiki/kb/posts/database/neo4j-getting-started/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/postgresql-performance-tuning/</loc>
+    <loc>https://cot.wiki/kb/posts/database/postgresql-performance-tuning/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/redis-cache-strategies/</loc>
+    <loc>https://cot.wiki/kb/posts/database/redis-cache-strategies/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/redis-sentinel-mode/</loc>
+    <loc>https://cot.wiki/kb/posts/database/redis-sentinel-mode/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/database/sql-injection-defense/</loc>
+    <loc>https://cot.wiki/kb/posts/database/sql-injection-defense/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/ansible-automation/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/ansible-automation/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/docker-best-practices/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/docker-best-practices/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/elk-log-collection/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/elk-log-collection/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/git-conflict-resolution/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/git-conflict-resolution/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/github-actions-ci-cd/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/github-actions-ci-cd/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/jenkins-pipeline-config/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/jenkins-pipeline-config/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/k8s-cluster-setup/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/k8s-cluster-setup/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/nginx-load-balancing/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/nginx-load-balancing/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/prometheus-monitoring/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/prometheus-monitoring/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/devops/terraform-iac/</loc>
+    <loc>https://cot.wiki/kb/posts/devops/terraform-iac/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/css-grid-in-action/</loc>
+    <loc>https://cot.wiki/kb/posts/security/csrf-defense-guide/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/frontend-performance-metrics/</loc>
+    <loc>https://cot.wiki/kb/posts/security/ddos-attack-defense/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/micro-frontend-practice/</loc>
+    <loc>https://cot.wiki/kb/posts/security/https-certificate-config/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/nextjs-render-modes/</loc>
+    <loc>https://cot.wiki/kb/posts/security/jwt-security-best-practices/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/react-concurrent-render/</loc>
+    <loc>https://cot.wiki/kb/posts/security/key-and-cert-management/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/typescript-type-challenges/</loc>
+    <loc>https://cot.wiki/kb/posts/security/linux-server-hardening/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/vite-migration-guide/</loc>
+    <loc>https://cot.wiki/kb/posts/security/oauth2-authorization/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/vue3-reactive-principle/</loc>
+    <loc>https://cot.wiki/kb/posts/security/owasp-top-10-defense/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/wasm-getting-started/</loc>
+    <loc>https://cot.wiki/kb/posts/security/sensitive-data-encryption/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/frontend/webpack-performance-tuning/</loc>
+    <loc>https://cot.wiki/kb/posts/security/xss-defense-guide/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/csrf-defense-guide/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/css-grid-in-action/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/ddos-attack-defense/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/frontend-performance-metrics/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/https-certificate-config/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/micro-frontend-practice/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/jwt-security-best-practices/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/nextjs-render-modes/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/key-and-cert-management/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/react-concurrent-render/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/linux-server-hardening/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/typescript-type-challenges/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/oauth2-authorization/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/vite-migration-guide/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/owasp-top-10-defense/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/vue3-reactive-principle/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/sensitive-data-encryption/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/wasm-getting-started/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
   <url>
-    <loc>https://xstack.cn/kb/posts/security/xss-defense-guide/</loc>
+    <loc>https://cot.wiki/kb/posts/frontend/webpack-performance-tuning/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-05-26T00:00:00.000Z</lastmod>
+    <lastmod>2026-05-26</lastmod>
   </url>
 </urlset>

@@ -1,10 +1,4 @@
-export const categoryMap: Record<string, string> = {
-  frontend: "前端技术",
-  backend: "后端架构",
-  devops: "运维交付",
-  database: "数据存储",
-  security: "安全防护",
-};
+import { categoryMap } from "./constants";
 
 export function sortByDate<T extends { date?: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => {
@@ -29,18 +23,12 @@ export interface TreeNode {
 export function buildDocTree(posts: { slug: string; title: string; permalink: string }[]): TreeNode[] {
   const root: TreeNode[] = [];
 
-  const categoryMap: Record<string, string> = {
-    frontend: "前端技术",
-    backend: "后端架构",
-    devops: "运维交付",
-    database: "数据存储",
-    security: "安全防护",
-  };
-
   posts.forEach((post) => {
     const parts = post.slug.split("/");
     let currentLevel = root;
     let currentPath = "";
+    // 每一层维护一个 Map，实现 O(1) 文件夹查找
+    let currentMap: Map<string, TreeNode> | null = null;
 
     parts.forEach((part, index) => {
       const isLast = index === parts.length - 1;
@@ -56,8 +44,14 @@ export function buildDocTree(posts: { slug: string; title: string; permalink: st
           docCount: 1,
         });
       } else {
-        // 目录节点（文件夹）
-        let folder = currentLevel.find((item) => item.isFolder && item.name === part);
+        // 目录节点（文件夹）— 用 Map 做 O(1) 查找
+        if (!currentMap) {
+          currentMap = new Map<string, TreeNode>();
+          for (const item of currentLevel) {
+            if (item.isFolder) currentMap.set(item.name, item);
+          }
+        }
+        let folder = currentMap.get(part);
         if (!folder) {
           const key = part.toLowerCase();
           folder = {
@@ -68,8 +62,10 @@ export function buildDocTree(posts: { slug: string; title: string; permalink: st
             title: categoryMap[key] || (part.charAt(0).toUpperCase() + part.slice(1)),
           };
           currentLevel.push(folder);
+          currentMap.set(part, folder);
         }
         currentLevel = folder.children!;
+        currentMap = null; // 进入下一层，重新构建 Map
       }
     });
   });
@@ -107,4 +103,3 @@ export function buildDocTree(posts: { slug: string; title: string; permalink: st
   sortTree(root);
   return root;
 }
-

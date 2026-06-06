@@ -18,6 +18,7 @@
 /out/
 /.velite/
 /public/search-index.json
+/public/sitemap.xml
 
 # production
 /build

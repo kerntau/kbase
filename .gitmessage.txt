@@ -1,0 +1,21 @@
+refactor(architecture): 官网门面重构与底层组件目录层级拆分重塑
+
+[背景]
+随着项目演进，原有的 /src/components 目录下组件过度堆积，官网入口（Marketing）与知识库阅读器（App）存在严重的逻辑与样式耦合，且缺失工程化的目录拓扑。
+
+[问题]
+1. 视觉设计平庸：缺乏现代极客风格的冷感与阻尼交互体验。
+2. 架构混乱：所有维度的 UI 组件平铺在同一层级。
+3. 性能隐患：原生 <img> 标签滥用，且存在大量 Hydration Mismatch 的幽灵属性警告。
+
+[方案]
+1. 彻底切分目录树，将原业务组件下沉重构为 /layout, /marketing, /ui 等独立拓扑。
+2. 重写 MarketingHomeContent 与 ManifestoContent，引入纯粹的排版美学与 GSAP GPU 物理动画阻尼交互。
+3. 全面移除 Emoji 等花哨元素，深度扩充架构白皮书级别的 README.md。
+4. 在 Sidebar/WikiShell 的相关节点打上 suppressHydrationWarning 拦截警告。
+
+[影响]
+彻底提升代码库的架构清爽度与页面渲染的视觉表现力。为知识库注入“代码即逻辑”的极客魂。
+
+[风险]
+组件路径大范围迁移，可能导致未清理干净的开发端缓存崩溃，需配合强制粉碎 .next 目录进行冷启动。

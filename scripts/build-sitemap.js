@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const SITE_URL = "https://xstack.cn";
+const SITE_URL = "https://cot.wiki";
 
 try {
   const postsPath = path.join(process.cwd(), ".velite", "posts.json");
@@ -12,17 +12,19 @@ try {
 
   const posts = JSON.parse(fs.readFileSync(postsPath, "utf-8"));
 
+  const today = new Date().toISOString().split("T")[0];
+
   const staticPages = [
-    { url: "/", changefreq: "weekly", priority: "1.0" },
-    { url: "/kb/", changefreq: "weekly", priority: "0.9" },
-    { url: "/manifesto/", changefreq: "monthly", priority: "0.5" },
+    { url: "/", changefreq: "weekly", priority: "1.0", lastmod: today },
+    { url: "/kb/", changefreq: "weekly", priority: "0.9", lastmod: today },
+    { url: "/manifesto/", changefreq: "monthly", priority: "0.5", lastmod: today },
   ];
 
   const postPages = posts.map((post) => ({
     url: post.permalink + "/",
     changefreq: "monthly",
     priority: "0.8",
-    lastmod: post.date,
+    lastmod: post.date ? post.date.split("T")[0] : undefined,
   }));
 
   const allPages = [...staticPages, ...postPages];

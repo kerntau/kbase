@@ -7,29 +7,37 @@ import { useRouter } from "next/navigation";
 export default function FloatingActions() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
+  const [atBottom, setAtBottom] = useState(false);
   const [hovering, setHovering] = useState(false);
+  const [focusing, setFocusing] = useState(false);
   const hoveringRef = useRef(hovering);
+  const focusingRef = useRef(focusing);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Keep ref in sync with state
   useEffect(() => { hoveringRef.current = hovering; }, [hovering]);
+  useEffect(() => { focusingRef.current = focusing; }, [focusing]);
 
   const resetHideTimer = () => {
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);
     }
     hideTimeoutRef.current = setTimeout(() => {
-      if (!hoveringRef.current) {
+      if (!hoveringRef.current && !focusingRef.current) {
         setVisible(false);
       }
-    }, 2500);
+    }, 8000);
   };
 
-  // Register scroll listener only once; use ref for hovering state
   useEffect(() => {
     const handleScroll = () => {
-      // 只要滚动了超过 150px，便显示该组件
       setVisible(window.scrollY > 150);
+      
+      // 检测是否接近底部（防遮挡智能避让机制）
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const documentHeight = document.documentElement.scrollHeight;
+      // 当距离页面绝对底部小于 150px 时触发上浮
+      setAtBottom(documentHeight - scrollPosition < 150);
+
       resetHideTimer();
     };
 
@@ -55,6 +63,19 @@ export default function FloatingActions() {
     resetHideTimer();
   };
 
+  const handleFocus = () => {
+    setFocusing(true);
+    setVisible(true);
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+  };
+
+  const handleBlur = () => {
+    setFocusing(false);
+    resetHideTimer();
+  };
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -64,73 +85,37 @@ export default function FloatingActions() {
   };
 
   return (
-    <>
-      <div
-        className={`fixed z-50 flex flex-col items-center bg-background/65 rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.04)] backdrop-blur-lg transition-all duration-300 ease-out hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] ${
-          visible
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-3.5 pointer-events-none"
-        }`}
-        id="floating-capsule"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+    <div
+      className={`fixed z-50 right-3 sm:right-6 flex flex-col items-center justify-center w-9 sm:w-10 py-0.5 bg-background/70 rounded-full border border-divider/40 shadow-lg backdrop-blur-md transition-all duration-300 ease-out overflow-hidden hover:shadow-xl ${
+        atBottom ? "bottom-[120px] sm:bottom-[130px]" : "bottom-6 sm:bottom-8"
+      } ${
+        visible
+          ? "opacity-100 translate-x-0 sm:translate-y-0"
+          : "opacity-0 translate-x-10 sm:translate-x-0 sm:translate-y-4 pointer-events-none"
+      }`}
+      id="floating-capsule"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    >
+      <button
+        onClick={goHome}
+        className="flex items-center justify-center w-full h-8 sm:h-9 text-foreground/50 hover:text-accent hover:bg-foreground/[0.06] transition-all duration-200 active:scale-95 cursor-pointer"
+        aria-label="返回主页"
+        title="返回主页"
       >
-        {/* Back to index */}
-        <button
-          onClick={goHome}
-          className="flex items-center justify-center text-foreground/50 hover:text-accent transition-all duration-200 active:scale-90 cursor-pointer"
-          id="capsule-btn-home"
-          aria-label="返回索引"
-          title="返回索引"
-        >
-          <Home size={16} strokeWidth={2.2} />
-        </button>
+        <Home size={14} strokeWidth={2} className="sm:w-3.5 sm:h-3.5" />
+      </button>
 
-        {/* 分割线 */}
-        <div className="w-[50%] h-[1px] bg-border/50" />
-
-        {/* Back to top */}
-        <button
-          onClick={scrollToTop}
-          className="flex items-center justify-center text-foreground/50 hover:text-accent transition-all duration-200 active:scale-90 cursor-pointer"
-          id="capsule-btn-top"
-          aria-label="回到顶部"
-          title="回到顶部"
-        >
-          <ChevronUp size={18} strokeWidth={2.5} />
-        </button>
-      </div>
-
-      <style>{`
-        #floating-capsule {
-          right: var(--layout-floating-mobile-right, 0.8rem);
-          bottom: var(--layout-floating-mobile-bottom, 1.2rem);
-          padding: 6px 0;
-          width: 38px;
-          gap: 6px;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        .dark #floating-capsule {
-          border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        #capsule-btn-home, #capsule-btn-top {
-          width: 36px;
-          height: 32px;
-        }
-        @media (min-width: 640px) {
-          #floating-capsule {
-            right: var(--layout-floating-right, 1.2rem);
-            bottom: var(--layout-floating-bottom, 1.8rem);
-            padding: 8px 0;
-            width: 42px;
-            gap: 8px;
-          }
-          #capsule-btn-home, #capsule-btn-top {
-            width: 40px;
-            height: 36px;
-          }
-        }
-      `}</style>
-    </>
+      <button
+        onClick={scrollToTop}
+        className="flex items-center justify-center w-full h-8 sm:h-9 text-foreground/50 hover:text-accent hover:bg-foreground/[0.06] transition-all duration-200 active:scale-95 cursor-pointer"
+        aria-label="回到顶部"
+        title="回到顶部"
+      >
+        <ChevronUp size={16} strokeWidth={2.5} className="sm:w-4 sm:h-4" />
+      </button>
+    </div>
   );
 }

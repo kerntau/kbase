@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, type ComponentType } from "react";
+import { useMemo, type ComponentType } from "react";
+import { useQueryState } from "nuqs";
 import Link from "next/link";
 import {
   Layers,
@@ -14,7 +15,7 @@ import {
   FolderOpen
 } from "lucide-react";
 import { Post } from "#content";
-import { categoryMap, sortByDate } from "@/utils/tree";
+import { categoryMap } from "@/lib/constants";
 
 interface HomeContentProps {
   posts: Post[];
@@ -30,16 +31,21 @@ const CATEGORY_ICONS: Record<string, ComponentType<{ size?: number; className?: 
 };
 
 export default function HomeContent({ posts, categories }: HomeContentProps) {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useQueryState("category");
 
-  // 按日期降序排列
-  const sortedPosts = useMemo(() => sortByDate(posts), [posts]);
-
+  // posts 已经在服务端按日期降序排列
   // 按当前分类过滤
   const displayPosts = useMemo(() => {
-    if (!activeCategory) return sortedPosts;
-    return sortedPosts.filter((p) => p.category === activeCategory);
-  }, [sortedPosts, activeCategory]);
+    if (!activeCategory) return posts;
+    return posts.filter((p) => p.category === activeCategory);
+  }, [posts, activeCategory]);
+
+  // 预计算各分类文章数量，避免在 .map() 中重复过滤
+  const categoryCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    posts.forEach(p => { if (p.category) map[p.category] = (map[p.category] || 0) + 1; });
+    return map;
+  }, [posts]);
 
   return (
     <div className="flex flex-col gap-8 py-4 select-text animate-fade-in">
@@ -53,7 +59,7 @@ export default function HomeContent({ posts, categories }: HomeContentProps) {
           <p>我们在此系统性记录从内核机制、安全攻防对抗到分布式架构的开发与调试实践。</p>
           <p>去除冗余的信息噪音，只留严谨的逻辑推演与工程代码沉淀。</p>
         </div>
-        <div className="flex items-center gap-4.5 mt-1.5 text-xs text-foreground/45">
+        <div className="flex items-center gap-4.5 mt-1.5 text-xs text-foreground/60">
           <span className="flex items-center gap-1.5">
             <BookOpen size={13} className="opacity-70" />
             <span>{posts.length} 篇文档</span>
@@ -73,23 +79,23 @@ export default function HomeContent({ posts, categories }: HomeContentProps) {
       {/* 分类过滤区 */}
       {categories.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-[10px] font-bold tracking-widest text-foreground/40 uppercase">
+          <h2 className="text-[10px] font-bold tracking-widest text-foreground/60 uppercase">
             Categories
           </h2>
           <div className="flex flex-nowrap md:flex-wrap gap-2 overflow-x-auto hide-scrollbar pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 select-none">
             <button
               onClick={() => setActiveCategory(null)}
-              className={`flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 border transition-all duration-300 focus:outline-none cursor-pointer rounded-xs ${
+              className={`flex items-center gap-1.5 text-xs font-medium px-3.5 py-2.5 border transition-all duration-300 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-1 cursor-pointer rounded-xs ${
                 activeCategory === null
-                  ? "border-accent bg-accent text-background shadow-xs shadow-accent/5"
-                  : "border-divider text-foreground/55 hover:border-foreground/30 hover:text-foreground bg-muted/40 hover:bg-muted/80"
+                  ? "border-accent bg-accent text-background shadow-md shadow-accent/20"
+                  : "border-divider text-foreground/55 hover:border-foreground/30 hover:text-foreground bg-muted/40 hover:bg-muted/80 hover:shadow-sm"
               }`}
             >
               <Layers size={13} className={activeCategory === null ? "opacity-90" : "opacity-60"} />
               <span>All ({posts.length})</span>
             </button>
             {categories.map((category) => {
-              const count = posts.filter((p) => p.category === category).length;
+              const count = categoryCounts[category] ?? 0;
               const isActive = activeCategory === category;
               const IconComponent = CATEGORY_ICONS[category.toLowerCase()] || BookOpen;
               return (
@@ -98,10 +104,10 @@ export default function HomeContent({ posts, categories }: HomeContentProps) {
                   onClick={() =>
                     setActiveCategory(isActive ? null : category)
                   }
-                  className={`flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 border transition-all duration-300 focus:outline-none cursor-pointer rounded-xs ${
+                  className={`flex items-center gap-1.5 text-xs font-medium px-3.5 py-2.5 border transition-all duration-300 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-1 cursor-pointer rounded-xs ${
                     isActive
-                      ? "border-accent bg-accent text-background shadow-xs shadow-accent/5"
-                      : "border-divider text-foreground/55 hover:border-foreground/30 hover:text-foreground bg-muted/40 hover:bg-muted/80"
+                      ? "border-accent bg-accent text-background shadow-md shadow-accent/20"
+                      : "border-divider text-foreground/55 hover:border-foreground/30 hover:text-foreground bg-muted/40 hover:bg-muted/80 hover:shadow-sm"
                   }`}
                 >
                   <IconComponent size={13} className={isActive ? "opacity-90" : "opacity-60"} />
@@ -115,31 +121,32 @@ export default function HomeContent({ posts, categories }: HomeContentProps) {
 
       {/* 文章列表 */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-[10px] font-bold tracking-widest text-foreground/40 uppercase border-b border-divider/40 pb-2">
+        <h2 className="text-[10px] font-bold tracking-widest text-foreground/60 uppercase border-b border-divider/40 pb-2">
           {activeCategory ? `${categoryMap[activeCategory] || activeCategory} — ${displayPosts.length} 篇文档` : "Recent Documents"}
         </h2>
 
         {displayPosts.length === 0 ? (
-          <p className="text-sm text-foreground/40 italic py-4">
-            No documents in this category yet.
+          <p className="text-sm text-foreground/60 italic py-4">
+            该分类暂无文档。
           </p>
         ) : (
-          <div className="flex flex-col gap-1.5">
+          <div key={String(activeCategory)} className="flex flex-col gap-1.5 animate-fade-in">
             {displayPosts.map((post) => (
-              <article
+              <Link
                 key={post.permalink}
-                className="py-4 flex flex-col gap-2 group border-b border-divider/30 last:border-0 hover:bg-foreground/[0.005] px-3.5 -mx-3.5 rounded-sm transition-all duration-300 ease-out"
+                href={post.permalink}
+                className="group relative flex flex-col gap-2 py-4.5 px-4 -mx-4 border-b border-divider/30 last:border-0 hover:bg-foreground/[0.015] rounded-sm transition-all duration-500 ease-out hover:-translate-y-px hover:shadow-[0_4px_20px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-1 focus-visible:ring-accent/50 overflow-hidden"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                {/* 悬浮时的左侧动效竖线 */}
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent -translate-x-full group-hover:translate-x-0 transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)" />
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 group-hover:pl-2 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Link
-                      href={post.permalink}
-                      className="font-sans font-bold text-[1.05rem] text-foreground group-hover:text-accent transition-colors duration-200 leading-snug truncate"
-                    >
+                    <h3 className="font-sans font-bold text-[1.05rem] text-foreground group-hover:text-accent transition-colors duration-300 leading-snug truncate min-w-0">
                       {post.title}
-                    </Link>
+                    </h3>
                   </div>
-                  
+
                   <div className="flex items-center gap-2.5 shrink-0 select-none">
                     {post.category && (
                       <span className="bg-accent/8 border border-accent/20 text-accent font-bold px-1.5 py-0.5 rounded-xs text-[9px] tracking-wider uppercase">
@@ -147,7 +154,7 @@ export default function HomeContent({ posts, categories }: HomeContentProps) {
                       </span>
                     )}
                     {post.date && (
-                      <span className="flex items-center gap-1 text-[11px] text-foreground/40 font-mono">
+                      <span className="flex items-center gap-1 text-[11px] text-foreground/60 font-mono">
                         <Calendar size={11} className="opacity-70" />
                         <time>{post.date.split("T")[0]}</time>
                       </span>
@@ -155,11 +162,11 @@ export default function HomeContent({ posts, categories }: HomeContentProps) {
                   </div>
                 </div>
                 {post.description && (
-                  <p className="text-xs sm:text-[0.88rem] text-foreground/50 max-w-3xl leading-relaxed">
+                  <p className="text-xs sm:text-[0.88rem] text-foreground/60 max-w-3xl leading-relaxed group-hover:pl-2 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)">
                     {post.description}
                   </p>
                 )}
-              </article>
+              </Link>
             ))}
           </div>
         )}

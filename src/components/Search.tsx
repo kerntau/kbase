@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef, useTransition, useCallback } from "react";
+import { useEffect, useState, useRef, useTransition, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search as SearchIcon, X, FileText, CornerDownLeft, AlertCircle } from "lucide-react";
+import { Search as SearchIcon, X, AlertCircle, Clock, Trash2, Terminal } from "lucide-react";
 import { Index } from "flexsearch";
+import { Command } from "cmdk";
 import { useUI } from "@/context/UIContext";
+import { categoryMap } from "@/lib/constants";
 
 interface SearchItem {
   title: string;
@@ -13,21 +15,23 @@ interface SearchItem {
   category: string;
   description: string;
   content: string;
+  date?: string;
 }
 
 type IndexState = "idle" | "loading" | "ready" | "error";
 
-function highlightText(text: string, highlight: string) {
+function highlightText(text: string, highlight: string, className?: string) {
   if (!text) return null;
-  if (!highlight.trim()) return <span className="truncate">{text}</span>;
+  if (!highlight.trim()) return <span className={className}>{text}</span>;
   const escapedHighlight = highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
   const regex = new RegExp(`(${escapedHighlight})`, "gi");
+  const lcHighlight = highlight.toLowerCase().trim();
   const parts = text.split(regex);
   return (
-    <span className="truncate">
+    <span className={className}>
       {parts.map((part, i) =>
-        regex.test(part) ? (
-          <mark key={i} className="bg-foreground/15 text-foreground font-semibold px-0.5 rounded-sm bg-transparent !text-accent">
+        part.toLowerCase().includes(lcHighlight) ? (
+          <mark key={i} className="text-foreground font-semibold px-1.5 py-0.5 mx-0.5 rounded-xs bg-accent/12 !text-accent font-sans">
             {part}
           </mark>
         ) : (
@@ -38,6 +42,7 @@ function highlightText(text: string, highlight: string) {
   );
 }
 
+
 export default function Search() {
   const router = useRouter();
   const { isSearchOpen, setIsSearchOpen } = useUI();
@@ -46,7 +51,6 @@ export default function Search() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<SearchItem[]>([]);
   const [allItems, setAllItems] = useState<SearchItem[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [indexState, setIndexState] = useState<IndexState>("idle");
   const [history, setHistory] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
@@ -58,35 +62,42 @@ export default function Search() {
     }
   });
   const [, startTransition] = useTransition();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchTime, setSearchTime] = useState(0);
+
+  // 提取内容中匹配位置的片段（约 120 字符窗口）
+  function getContentSnippet(content: string | undefined, q: string): string | null {
+    if (!content || !q.trim()) return null;
+    const lc = content.toLowerCase();
+    const lq = q.toLowerCase().trim();
+    const pos = lc.indexOf(lq);
+    if (pos === -1) {
+      return content.length <= 120 ? content : content.slice(0, 120) + "...";
+    }
+    const start = Math.max(0, pos - 40);
+    const end = Math.min(content.length, pos + lq.length + 80);
+    let snippet = content.slice(start, end);
+    if (start > 0) snippet = "..." + snippet;
+    if (end < content.length) snippet = snippet + "...";
+    return snippet;
+  }
 
   const searchIndexRef = useRef<Index | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const activeItemRef = useRef<HTMLButtonElement>(null);
 
   // 输入防抖
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
-    }, 120);
+    }, 250);
     return () => clearTimeout(timer);
   }, [query]);
-
-  // 监听选中项改变，自动平滑滚动
-  useEffect(() => {
-    if (activeItemRef.current) {
-      activeItemRef.current.scrollIntoView({
-        block: "nearest",
-        behavior: "smooth",
-      });
-    }
-  }, [selectedIndex]);
 
   // Ctrl+K / Cmd+K 快捷键
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
-        setIsSearchOpen(true);
+        setIsSearchOpen((prev) => !prev);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -97,22 +108,17 @@ export default function Search() {
   useEffect(() => {
     if (!isSearchOpen) return;
 
-    // 聚焦输入框
-    setTimeout(() => inputRef.current?.focus(), 60);
-
-    // 重新加载历史记录（可能在其他标签页中被修改）
+    // 重新加载历史记录
     try {
       const saved = localStorage.getItem("kb_search_history");
       if (saved) {
         const parsed = JSON.parse(saved);
-        // 使用 setTimeout 避免同步 setState 级联渲染
         setTimeout(() => setHistory(parsed), 0);
       }
     } catch {
-      // 忽略解析错误
+      // ignore
     }
 
-    // 已加载过则跳过
     if (searchIndexRef.current) return;
 
     setIndexState("loading");
@@ -124,8 +130,7 @@ export default function Search() {
         const englishWords = str.replace(cjkRegex, " ").split(/[\s\.\-\/_]+/).filter(Boolean);
         const cjkChars = str.match(cjkRegex) || [];
         return [...englishWords, ...cjkChars];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any
+      }) as any // eslint-disable-line @typescript-eslint/no-explicit-any
     });
 
     fetch("/search-index.json")
@@ -150,15 +155,42 @@ export default function Search() {
   useEffect(() => {
     if (!debouncedQuery.trim() || !searchIndexRef.current) {
       setResults([]);
-      setSelectedIndex(0);
+      setSearchTime(0);
       return;
     }
+    const startTime = performance.now();
     startTransition(() => {
       const hits = searchIndexRef.current!.search(debouncedQuery, { limit: 8 }) as number[];
       setResults(hits.map((i) => allItems[i]).filter(Boolean));
-      setSelectedIndex(0);
+      setSearchTime(Math.round(performance.now() - startTime));
     });
   }, [debouncedQuery, allItems]);
+
+  // 派生值：分类过滤后的结果
+  const filteredResults = useMemo(
+    () =>
+      selectedCategory
+        ? results.filter((item) => item.category === selectedCategory)
+        : results,
+    [results, selectedCategory]
+  );
+
+  // 推荐文章（无结果时，按日期倒序取前 5 篇）
+  const sortedSuggestedItems = useMemo(() => {
+    if (results.length !== 0 || !query.trim()) return [];
+    return [...allItems]
+      .sort((a, b) => ((b.date ?? "") > (a.date ?? "") ? 1 : -1))
+      .slice(0, 5);
+  }, [results, query, allItems]);
+
+  // 实际显示的列表：优先显示过滤后的搜索结果，无结果时显示推荐
+  const displayItems = filteredResults.length > 0 ? filteredResults : sortedSuggestedItems;
+
+  // 当前结果中出现的分类（用于渲染 pills）
+  const resultCategories = useMemo(
+    () => [...new Set(results.map((item) => item.category))],
+    [results]
+  );
 
   // 保存搜索历史
   const saveToHistory = useCallback((q: string) => {
@@ -185,157 +217,266 @@ export default function Search() {
       }
       setIsSearchOpen(false);
       setQuery("");
+      setSelectedCategory(null);
       router.push(path);
     },
     [router, setIsSearchOpen, query, saveToHistory]
   );
 
-  // 键盘导航
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case "Escape":
-        setIsSearchOpen(false);
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % Math.max(results.length, 1));
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + Math.max(results.length, 1)) % Math.max(results.length, 1));
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (results[selectedIndex]) handleNavigate(results[selectedIndex].permalink);
-        break;
-      case "Tab":
-        // 焦点陷阱：阻止 Tab 离开搜索弹窗
-        e.preventDefault();
-        break;
-    }
-  };
-
   if (!isSearchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center pt-[10vh] px-4 sm:px-6 no-print select-none">
+    <Command.Dialog
+      open={isSearchOpen}
+      onOpenChange={(open) => setIsSearchOpen(open)}
+      label="全局搜索"
+      container={typeof window !== "undefined" ? document.body : undefined}
+      filter={() => 1} // 禁用内置客户端过滤，使用 FlexSearch 结果
+      className="fixed inset-0 z-[70] flex items-start justify-center pt-[10vh] px-4 sm:px-6 no-print select-none"
+    >
       {/* 遮罩 */}
       <div
         className="absolute inset-0 bg-background/50 backdrop-blur-sm"
         onClick={() => setIsSearchOpen(false)}
+        aria-hidden="true"
       />
 
       {/* 搜索面板 */}
-      <div
-        onKeyDown={handleKeyDown}
-        className="relative w-full max-w-[768px] bg-background border border-[#3b82f6] shadow-[0_0_0_3px_rgba(59,130,246,0.15)] dark:border-[#3b82f6] dark:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] flex flex-col overflow-hidden max-h-[85vh] rounded-xl animate-search-reveal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="搜索"
-      >
+      <div className="relative w-full max-w-[768px] bg-background border border-divider/40 shadow-2xl flex flex-col overflow-hidden max-h-[85vh] rounded-xl animate-search-reveal">
         {/* 输入区 */}
         <div className="flex items-center gap-3 px-5 h-14 border-b border-divider/50 shrink-0">
           <SearchIcon size={18} className="text-foreground/35 shrink-0" />
-          <input
-            ref={inputRef}
-            id="search-input"
-            type="text"
+          <Command.Input
             placeholder="键入开始搜索"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onValueChange={setQuery}
             className="flex-1 bg-transparent border-0 text-base focus:outline-none focus:ring-0 focus:border-transparent text-foreground placeholder-foreground/35"
-            autoComplete="off"
           />
           {query && (
             <button
-              onClick={() => { setQuery(""); inputRef.current?.focus(); }}
-              className="p-1 rounded-full text-foreground/35 hover:text-foreground hover:bg-foreground/5 transition-colors"
+              onClick={() => setQuery("")}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-foreground/35 hover:text-foreground hover:bg-foreground/5 transition-colors cursor-pointer"
               aria-label="清除内容"
             >
               <X size={16} />
             </button>
           )}
-          {!query && (
-            <button
-              onClick={() => setIsSearchOpen(false)}
-              className="p-1 rounded-full text-foreground/35 hover:text-foreground hover:bg-foreground/5 transition-colors"
-              aria-label="关闭"
-            >
-              <X size={16} />
-            </button>
-          )}
+          <button
+            onClick={() => setIsSearchOpen(false)}
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-foreground/35 hover:text-foreground hover:bg-foreground/5 transition-colors cursor-pointer"
+            aria-label="关闭"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {/* 结果区 */}
-        <div className="flex-1 overflow-y-auto scroll-smooth">
-          {indexState === "error" ? (
+        <Command.List className="flex-1 overflow-y-auto scroll-smooth">
+          {indexState === "error" && (
             <div className="py-12 text-center flex flex-col items-center gap-3">
               <AlertCircle size={24} className="text-destructive/60" />
               <p className="text-sm text-foreground/60">
                 搜索索引加载失败。
               </p>
-              <p className="text-xs text-foreground/40">
-                请运行 <code className="font-mono bg-foreground/5 px-1.5 py-0.5 rounded">npm run build</code> 生成它。
-              </p>
             </div>
-          ) : indexState === "loading" ? (
+          )}
+
+          {indexState === "loading" && (
             <div className="py-12 text-center text-sm text-foreground/40 animate-pulse">
               正在加载索引…
             </div>
-          ) : query.trim() === "" ? null : results.length === 0 ? (
+          )}
+
+          {indexState === "ready" && query.trim() === "" && (
+            <div className="py-8 px-6 flex flex-col gap-6.5">
+              {/* 搜索历史 */}
+              {history.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground/45 flex items-center gap-1.5 font-sans tracking-wide">
+                      <Clock size={12} className="opacity-70" />
+                      最近搜索
+                    </span>
+                    <button
+                      onClick={clearHistory}
+                      className="text-[11px] font-sans font-medium text-foreground/30 hover:text-foreground/60 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 size={11} />
+                      清除历史
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {history.map((item) => (
+                      <button
+                        key={item}
+                        onClick={() => setQuery(item)}
+                        className="text-xs px-2.5 py-1.5 rounded bg-muted/30 border border-divider/40 text-foreground/65 hover:text-foreground hover:border-foreground/35 hover:bg-muted/65 transition-colors cursor-pointer"
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 探索技术分类 */}
+              <div className="flex flex-col gap-3 border-t border-divider/25 pt-5">
+                <span className="text-xs font-semibold text-foreground/45 flex items-center gap-1.5 font-sans tracking-wide">
+                  <Terminal size={12} className="opacity-70" />
+                  探索技术分类
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {Object.entries(categoryMap).map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setQuery(label);
+                        setSelectedCategory(key);
+                      }}
+                      className="flex items-center justify-between px-3 py-2 text-xs text-foreground/65 border border-divider/40 bg-muted/10 hover:bg-accent/[0.03] hover:border-accent/40 hover:text-accent rounded transition-all duration-300 cursor-pointer"
+                    >
+                      <span>{label}</span>
+                      <span className="text-[10px] font-mono opacity-40 uppercase tracking-widest">{key}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 热门搜索推荐 */}
+              <div className="flex flex-col gap-3 border-t border-divider/25 pt-5">
+                <span className="text-xs font-semibold text-foreground/45 flex items-center gap-1.5 font-sans tracking-wide">
+                  <AlertCircle size={12} className="opacity-70" />
+                  热门搜索推荐
+                </span>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {["DDD 领域驱动设计", "Redis 分布式锁", "Cassandra 架构", "ES 索引设计", "API 网关"].map((term) => (
+                    <button
+                      key={term}
+                      onClick={() => {
+                        const cleanTerm = term.replace(/[\u4e00-\u9fa5]+/g, "").trim() || term;
+                        setQuery(cleanTerm);
+                      }}
+                      className="px-3 py-1.5 text-xs text-foreground/50 hover:text-accent bg-muted/20 hover:bg-accent/5 rounded-full border border-divider/30 hover:border-accent/30 transition-all cursor-pointer font-medium"
+                    >
+                      #{term}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {indexState === "ready" && query.trim() !== "" && displayItems.length === 0 && (
             <div className="py-12 text-center text-sm text-foreground/45 flex flex-col items-center gap-2">
               <SearchIcon size={24} className="text-foreground/20 mb-2" />
               未找到与 &ldquo;<span className="text-foreground font-semibold">{query}</span>&rdquo; 相关的文档
             </div>
-          ) : (
+          )}
+
+          {indexState === "ready" && query.trim() !== "" && displayItems.length > 0 && (
             <div className="flex flex-col">
-              {results.map((item, idx) => {
-                const isSelected = idx === selectedIndex;
-                return (
+              {/* 检索状态统计栏 */}
+              <div className="px-6 py-2.5 border-b border-divider/20 bg-muted/10 flex items-center justify-between text-[11px] font-sans font-semibold text-foreground/40 shrink-0 select-none">
+                <div className="flex items-center gap-2">
+                  <span>检索到 {displayItems.length} 个结果 {searchTime > 0 && `(耗时 ${searchTime}ms)`}</span>
+                </div>
+                <span className="opacity-60 uppercase font-mono tracking-widest text-[9px]">Hits Limit: 8</span>
+              </div>
+
+              {/* 分类筛选 pills */}
+              {resultCategories.length > 1 && (
+                <div className="flex flex-wrap gap-1.5 px-5 py-3 border-b border-divider/30 shrink-0">
                   <button
-                    key={item.permalink}
-                    ref={isSelected ? activeItemRef : undefined}
-                    onClick={() => handleNavigate(item.permalink)}
-                    onMouseEnter={() => setSelectedIndex(idx)}
-                    className={`relative flex flex-col w-full text-left px-6 py-4 transition-colors duration-150 border-b border-divider/30 last:border-b-0 outline-none focus:outline-none ${
-                      isSelected
-                        ? "bg-foreground/[0.03] dark:bg-foreground/[0.06]"
-                        : ""
+                    onClick={() => setSelectedCategory(null)}
+                    className={`text-[11px] font-medium px-2.5 py-1.5 border transition-colors cursor-pointer rounded-xs ${
+                      selectedCategory === null
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-divider text-foreground/55 hover:border-foreground/30 hover:text-foreground bg-muted/40 hover:bg-muted/80"
                     }`}
                   >
-                    {/* 标题行：标题 + 分类面包屑 */}
-                    <div className="flex items-baseline gap-3 mb-1">
-                      <span className="text-base font-bold text-foreground leading-snug">
-                        {highlightText(item.title, query)}
-                      </span>
-                      {item.category && (
-                        <span className="text-xs text-foreground/40 shrink-0">
-                          &gt; {item.category}
-                        </span>
-                      )}
-                    </div>
-                    {/* 正文片段 */}
-                    {item.description && (
-                      <p className="text-sm text-foreground/55 leading-relaxed line-clamp-3">
-                        {highlightText(item.description, query)}
-                      </p>
-                    )}
+                    All
                   </button>
+                  {resultCategories.map((cat) => {
+                    const isActive = selectedCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(isActive ? null : cat)}
+                        className={`text-[11px] font-medium px-2.5 py-1.5 border transition-colors cursor-pointer rounded-xs ${
+                          isActive
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-divider text-foreground/55 hover:border-foreground/30 hover:text-foreground bg-muted/40 hover:bg-muted/80"
+                        }`}
+                      >
+                        {categoryMap[cat] || cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* 结果项列表 */}
+              {displayItems.map((item) => {
+                const contentText = getContentSnippet(item.content, query);
+                return (
+                  <Command.Item
+                    key={item.permalink}
+                    value={item.permalink}
+                    onSelect={() => handleNavigate(item.permalink)}
+                    className="relative flex flex-col w-full text-left px-6 py-4.5 transition-all duration-300 border-b border-divider/30 last:border-b-0 outline-none focus:outline-none animate-fade-in data-[selected=true]:bg-accent/[0.02] dark:data-[selected=true]:bg-accent/[0.04] cursor-pointer group"
+                  >
+                    {/* 选中态左侧亮色指示条 */}
+                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent scale-y-0 group-data-[selected=true]:scale-y-100 transition-transform duration-200 origin-center" />
+
+                    {/* 标题行 */}
+                    <div className="flex items-center justify-between gap-3 mb-2 w-full">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {highlightText(item.title, query, "text-base font-bold text-foreground leading-snug group-data-[selected=true]:text-accent transition-colors truncate block")}
+                        {item.category && (
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-sm bg-accent/10 text-accent uppercase tracking-wider shrink-0 select-none">
+                            {categoryMap[item.category] || item.category}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 select-none shrink-0">
+                        {item.date && (
+                          <span className="text-[11px] font-mono text-foreground/30 font-light group-data-[selected=true]:text-foreground/45 transition-colors">
+                            {item.date}
+                          </span>
+                        )}
+                        {/* Enter 快捷徽章 */}
+                        <div className="flex items-center opacity-0 scale-90 group-data-[selected=true]:opacity-100 group-data-[selected=true]:scale-100 transition-all duration-200 ml-1">
+                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-sm bg-accent/10 text-accent flex items-center gap-1 border border-accent/20">
+                            <span>Enter</span>
+                            <kbd className="no-underline text-[11px] leading-none">↵</kbd>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* 描述 */}
+                    {item.description &&
+                      highlightText(item.description, query, "block text-sm text-foreground/55 leading-relaxed line-clamp-3 mb-1")
+                    }
+                    {/* 正文片段 */}
+                    {contentText &&
+                      highlightText(contentText, query, "block mt-1.5 text-xs text-foreground/40 leading-relaxed line-clamp-2 pl-3 border-l border-divider/60 font-sans italic")
+                    }
+                  </Command.Item>
                 );
               })}
             </div>
           )}
-        </div>
+        </Command.List>
 
-        {/* 底部快捷键提示 */}
-        {results.length > 0 && (
-          <div className="border-t border-divider/50 px-6 py-2.5 flex items-center justify-center gap-6 text-xs text-foreground/40 shrink-0">
+        {/* 底部提示 */}
+        {indexState === "ready" && displayItems.length > 0 && (
+          <div className="border-t border-divider/50 px-6 py-2.5 flex items-center justify-center gap-6 text-xs text-foreground/40 shrink-0 select-none">
             <span className="flex items-center gap-1">↑↓ 切换</span>
             <span className="flex items-center gap-1">⏎ 选择</span>
             <span className="flex items-center gap-1">Esc 关闭</span>
           </div>
         )}
       </div>
-    </div>
+    </Command.Dialog>
   );
 }
