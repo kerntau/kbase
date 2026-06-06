@@ -1,200 +1,219 @@
+<div align="center">
+  
 # SEQUENCE.STACK // KBASE
+  
+**代码即逻辑，边界即安全。**<br>
+*Code is Logic. Boundary is Security.*
 
-<p align="left">
-  <a href="https://github.com/kerntau/KBase/stargazers">
-    <img src="https://img.shields.io/github/stars/kerntau/KBase?style=flat-square&color=000000&logo=github" alt="GitHub stars">
-  </a>
-  <a href="https://github.com/kerntau/KBase/network/members">
-    <img src="https://img.shields.io/github/forks/kerntau/KBase?style=flat-square&color=000000&logo=git" alt="GitHub forks">
-  </a>
-  <a href="https://nextjs.org">
-    <img src="https://img.shields.io/badge/Next.js-16.2.6--Turbopack-000000?style=flat-square&logo=next.js" alt="Next.js">
-  </a>
-  <a href="https://react.dev">
-    <img src="https://img.shields.io/badge/React-19.2.4-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React">
-  </a>
-  <a href="https://tailwindcss.com">
-    <img src="https://img.shields.io/badge/Tailwind_CSS-4.0-06B6D4?style=flat-square&logo=tailwindcss" alt="Tailwind CSS">
-  </a>
-  <a href="https://github.com/kerntau/KBase/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&color=000000" alt="License">
-  </a>
-</p>
+<br>
 
-> 代码即逻辑，边界即安全。
+[![GitHub Stars](https://img.shields.io/github/stars/kerntau/KBase?style=for-the-badge&color=000000&logo=github)](https://github.com/kerntau/KBase/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/kerntau/KBase?style=for-the-badge&color=000000&logo=git)](https://github.com/kerntau/KBase/network/members)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.6-000000?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19.2.4-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_4.0-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge&color=000000)](https://github.com/kerntau/KBase/blob/main/LICENSE)
 
-**序栈（Sequence Stack / KBase）** 是一个专注于计算机底层原理、系统安全对抗与全栈架构演进的技术极客储备库。
+</div>
 
-系统全面摒弃了过度工程化的渲染框架与花哨表象，以极简主义、硬核美学为基调，基于 **Next.js App Router** 构建了具备亚毫秒级检索、混合服务端渲染及冷感排版系统的极速文档平台。本项目不仅是一个阅读工具，更是关于如何构筑现代高性能文档站点的技术标本。
+---
+
+## 01. THE PHILOSOPHY // 哲学与本源
+
+**序栈（Sequence Stack）** 是一个专注于计算机底层原理、系统安全对抗与全栈架构演进的技术极客储备库。
+
+面对充斥着黑盒化封装、沉重客户端渲染（CSR）以及过度工程化的当代软件开发，本项目试图提供一个纯粹的、高度结构化的技术知识聚落。系统本身作为一处展示技术美学的工程标本，以极严苛的标准重塑了文档渲染、状态管理、字体排印与全文检索的每一行代码。这不是一个简单的文档站，这是一场关于如何构筑现代高性能阅读体验的技术推演。
 
 🔗 **Repository**: [https://github.com/kerntau/KBase](https://github.com/kerntau/KBase)
 
 ---
 
-## 01. CORE ARCHITECTURE
+## 02. CORE ARCHITECTURE // 内核架构矩阵
 
-本系统采用 `Velite` 构建抽象语法树，将源文件夹下的 `MDX` 实时序列化为强类型内存对象，并交由 `Next.js` 编译器进行 Server Component 直出渲染，杜绝传统数据库产生的 IO 延迟。
+本系统完全抛弃了传统的数据库动态查询模型（RDBMS/NoSQL），基于 **Next.js App Router** 构建了完全在编译期定型的极速混合型架构。
 
 ```mermaid
 graph TD
-    subgraph Data Pipeline
-        A[content/**/*.mdx] -->|Velite Compiler| B(Type-safe JSON)
-        A -->|MDX Parser| C(Pre-rendered HTML & TOC)
+    subgraph "Phase 1: Build-Time Compilation (velite)"
+        A[content/**/*.mdx] -->|Schema Validation| B(Type-safe JSON Node)
+        A -->|AST Parsing| C(Pre-rendered HTML & TOC)
     end
     
-    subgraph Build Scripts
+    subgraph "Phase 2: Index Generation"
         B --> D[FlexSearch Indexer]
-        D --> E((search-index.json))
-        B --> F[Sitemap Generator]
+        D -->|Inverted Index| E((search-index.json))
     end
 
-    subgraph Runtime
-        C --> G[Next.js App Router]
-        G -->|SSR / SSG| H[Optimized DOM]
-        E -.->|Lazy Load| I[Client Search UI]
+    subgraph "Phase 3: Runtime Hydration (Next.js)"
+        C --> G[Server Components RSC]
+        G -->|Zero-JS Payload| H[Static DOM Tree]
+        E -.->|Lazy Load on User Intent| I[Client Interactive Search UI]
     end
 ```
 
+### 2.1 The Data Pipeline (基于 Velite 的内容管线)
+- **强类型边界**：通过 Zod Schema 强制校验每篇文档的元数据（标题、日期、分类）。任何字段的缺失或类型错误将在 `pnpm build` 阶段直接触发编译中断，将运行时错误扼杀于构建期。
+- **内存级读取**：运行期的所有文章数据直接通过 Node.js 内存模块导入，实现了极端的 TTFB (Time to First Byte) 延迟，规避了一切 IO 瓶颈。
+
 ---
 
-## 02. FEATURES MATRIX
+## 03. TECHNICAL INNOVATIONS // 技术革新矩阵
 
-| 领域模块 | 核心技术点 | 架构与实现细节 |
+| 领域模块 | 核心技术选型 | 架构实现细节深度解析 |
 | :--- | :--- | :--- |
-| **全文检索** | 内存级倒排索引 | 基于 `FlexSearch`，离线构建倒排索引树。支持中英混合无截断分词与 120ms 防抖高亮渲染，规避主线程阻塞。 |
-| **渲染管线** | RSC 优先法则 | 剥离无意义的 Client Boundary，页面骨架完全由 React Server Components 承担，实现超高 Cache Hit Ratio。 |
-| **字体排印** | 引擎抗锯齿与栅格 | 注入 `font-synthesis: style` 保护原生字距，段落行高锁定 `1.72`，最大阅读版心限制为 `820px`。 |
-| **微交互** | 物理阻尼与缓动 | 引入 `GSAP` 与 CSS 硬件加速 (`will-change`)，构建拟物玻璃卡片 (Glassmorphism) 与边缘微光动态效果。 |
-| **安全体系** | 静态资产固化 | 默认禁用所有的 `eval` 操作与未授权的外部 API 请求。通过 `MDX` 严格控制外部嵌入脚本的权限。 |
+| **全量检索** | `FlexSearch` | 摒弃了沉重的 Algolia 或 Elasticsearch。在预编译阶段抽取纯文本并序列化为离线倒排索引树。客户端采取按需惰性加载与 `120ms` 级按键防抖，支持中英双语无截断分词。 |
+| **渲染管线** | `RSC (React Server Components)` | 极致剥离 Client Boundary。除搜索面板、主题切换等强交互模块外，所有页面骨架均由服务端一次性直出，彻底消灭首屏白屏时间。 |
+| **字体排印** | `CSS Font Synthesis Lock` | 注入 `font-synthesis: style` 保护原生字距，禁止浏览器对缺失字重的字体进行粗糙合成。段落行高锁定黄金比例 `1.72`，版心宽度严格限制为 `820px`。 |
+| **微交互学** | `GSAP` & `will-change` | 引入物理阻尼计算与 CSS 硬件加速。页面加载时呈现 GPU 级别的平滑浮现；容器卡片采用 `backdrop-blur` 磨砂拟物态，悬停触发边缘极光微偏移。 |
+| **降级防御** | `MDX AST Interception` | 拓展原生 Markdown 抽象语法树，在构建时拦截并注入对 GitHub Alerts (`> [!NOTE]`) 的支持，并为所有图片自动化包裹全屏灯箱 (`Lightbox`) 组件。 |
 
 ---
 
-## 03. SYSTEM PIPELINE & DIRECTORY
+## 04. REPOSITORY TOPOLOGY // 源码工程拓扑
 
-从拉取源码到理解系统拓扑，请参考以下架构结构：
+理解本系统的核心机理，从熟悉以下目录树开始：
 
 ```text
 .
-├── content/                    # 数据源：MDX / Markdown 技术原稿
-│   ├── backend/                # └─ 存储分布式系统、网关与微服务推演
-│   ├── database/               # └─ 存储 RDBMS 原理、事务隔离分析
-│   └── security/               # └─ 存储底层系统对抗、防御绕过与协议审计
+├── content/                    # 核心数据层：MDX / Markdown 技术原稿
+│   ├── backend/                # ├─ 分布式系统、网关与微服务推演
+│   ├── database/               # ├─ RDBMS 底层原理、事务隔离分析
+│   ├── frontend/               # ├─ V8 引擎、渲染管线、前端安全
+│   └── security/               # └─ 漏洞利用、防御绕过与内存对抗机制
 │
-├── scripts/                    # 流水线辅助脚本
-│   └── build-search-index.js   # └─ 提取纯文本生成 FlexSearch 搜索词典
+├── scripts/                    # 编译管线附属核心组件
+│   ├── build-search-index.js   # ├─ 提取所有文档纯文本，构建 FlexSearch 倒排索引
+│   └── build-sitemap.js        # └─ 遍历路由树生成 XML 站点拓扑图
 │
-├── src/                        # 核心运行逻辑
-│   ├── app/                    # └─ App Router 全局路由协议
-│   ├── components/             # └─ 业务视图 (解耦为 /layout, /marketing, /ui)
-│   ├── context/                # └─ 极简全局状态总线
-│   └── lib/                    # └─ JSON-LD, Tree Node 数据组装引擎
+├── src/                        # 视图层与运行时逻辑
+│   ├── app/                    # ├─ Next.js App Router 全局路由协议 (SSR/SSG)
+│   ├── components/             # ├─ 高度解耦的业务组件树
+│   │   ├── layout/             # │  ├─ 骨架级布局 (Header, Footer, WikiShell)
+│   │   ├── marketing/          # │  ├─ 官网主页、发刊词等门面级展示组件
+│   │   └── ui/                 # │  └─ 原子级交互组件 (Tooltip, Lightbox)
+│   ├── hooks/                  # ├─ 自定义状态机 (useMounted, useScrollLock)
+│   └── lib/                    # └─ 辅助引擎 (JSON-LD 注入, 抽象树遍历算法)
 │
-├── velite.config.ts            # MDX 强类型 Schema 定义协议
-└── tailwind.css                # 基于 PostCSS 的原子类系统入口
+├── velite.config.ts            # 数据管线 Schema 定义协议 (Zod)
+└── next.config.ts              # 核心编译策略、安全 Headers 注入与重定向规则
 ```
 
 ---
 
-## 04. CLONE & QUICK START
+## 05. CLONE & QUICK START // 极速装配指南
 
-如果你打算在本地拉取代码并启动研发流，请确保你的终端具备以下前置环境：
-- Node.js >= 18
-- pnpm >= 9 (强制推荐，禁止使用 npm/yarn 造成幽灵依赖)
+如果你打算在本地构建该系统的运行时沙箱，请确保终端已具备以下环境：
+- `Node.js >= 18`
+- `pnpm >= 9` （强制要求：禁止使用 npm/yarn 以防破坏幽灵依赖锁定树）
+
+<details open>
+<summary><b>展开查看终端执行指令</b></summary>
 
 ```bash
-# 1. 克隆代码仓库
+# 1. 克隆代码仓库至本地环境
 git clone https://github.com/kerntau/KBase.git
 cd KBase
 
-# 2. 挂载依赖树
+# 2. 挂载硬链接依赖树
 pnpm install
 
-# 3. 激活 HMR 编译沙箱
+# 3. 激活具备 HMR (热重载) 的 Turbopack 编译沙箱
 pnpm dev
-# 监听端口 http://localhost:3000
-```
 
----
-
-## 05. DEPLOYMENT PROTOCOLS
-
-系统被设计为高度解耦的状态，支持从 Serverless 边缘网络到原生 Node.js 的全维度交付协议。
-
-### METHOD A: PM2 守护 Node.js 运行时 (性能最优)
-此模式保留了最佳的动态路由响应与 `next/image` 图片动态裁切能力，适合部署于独立服务器 / VPS。
-
-```bash
-# 执行生产级激进优化编译
-pnpm build
-
-# 使用 PM2 挂载常驻守护进程
-pm2 start npm --name "kbase-core" -- start
-```
-
-### METHOD B: 纯静态资产切片输出 (SSG)
-适用于 GitHub Pages、Vercel (无服务化)、Cloudflare Pages 或单纯交给 Nginx 托管的对象存储。
-> [!WARNING]
-> **静态降级代价**：此模式下服务器侧计算缺失。`next/image` 的动态裁剪压缩管线将静默失效，系统退化为输出原始尺寸的图片。
-
-```bash
-# 强制触发 SSG 穷举，输出所有路由的 HTML/CSS
-EXPORT_STATIC=1 pnpm build
-```
-编译产物将输出至 `out/` 文件夹。
-
-<details>
-<summary>展开查看 Nginx 高反差代理网关配置示例</summary>
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name docs.yourdomain.com;
-
-    ssl_certificate     /etc/nginx/ssl/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/key.pem;
-
-    # 安全握手协议与嗅探防御
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Content-Type-Options nosniff;
-    add_header X-Frame-Options DENY;
-    add_header X-XSS-Protection "1; mode=block";
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        
-        # Next.js 极度依赖 WebSocket 以进行缓存清理通信
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
+# 系统将启动于 http://localhost:3000
+# 并在后台实时监听 content/ 目录下的 MDX 节点变更
 ```
 </details>
 
 ---
 
-## 06. ENGINEERING & CONTRIBUTING
+## 06. DEPLOYMENT MATRIX // 全域部署矩阵
 
-由于该仓库定位为严谨的技术标本，所有向该代码库提交的 PR (Pull Request) 必须无条件遵守以下硬核契约：
+系统被设计为高度纯净的交付状态，支持从 Serverless 边缘网络到传统物理机的全拓扑部署。
 
-1. **预编译验证墙**：提交前必须能在本地无报错击穿 `pnpm build` 与 `pnpm lint` 编译。
-2. **规范化 Commit**：废弃诸如 `fix bug` 或 `update` 类的劣质提交信息。严格采用 Angular 原子化提交前缀：
-   ```text
-   feat(search): 引入基于 FlexSearch 的防抖处理
-   refactor(architecture): 重构目录拓扑并下沉业务逻辑
-   ```
-3. **极简原则**：拒绝任何增加无谓复杂度、非必要的外部 NPM 依赖树引入。如需添加，必须在 PR 中附带严格的性能与安全评估论证。
+### METHOD A: PM2 守护 Node.js 运行时 (最优性能方案)
+此模式保留了最佳的动态路由响应与 `next/image` 图片动态裁切引擎，适合独立物理机或 VPS。
+
+```bash
+# 触发生产级全量激进编译
+pnpm build
+
+# 使用 PM2 挂载常驻守护进程
+pm2 start npm --name "xstack-core" -- start
+```
+
+### METHOD B: Docker 容器化编排 (环境绝对隔离)
+适用于基于 Kubernetes 或是单纯 Docker-Compose 的微服务矩阵管理。
+
+<details>
+<summary><b>查看标准化 Dockerfile 配置</b></summary>
+
+```dockerfile
+# 阶段 1: 构建编译
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
+RUN pnpm build
+
+# 阶段 2: 生产运行时抽离
+FROM node:18-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+# 仅提取运行时必需资产
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+</details>
+
+### METHOD C: 纯静态资产切片输出 (SSG 静态降级)
+适用于 GitHub Pages、Vercel (无服务器化) 或是单纯交由 Nginx 托管的静态存储服务。
+
+> [!WARNING]
+> **计算降级代价**：此模式下所有的 Node 运行时计算将丢失。`next/image` 的动态裁剪压缩管线静默失效（系统退化为输出原始尺寸图片）。
+
+```bash
+# 强制触发 SSG 路由树穷举，将全站坍缩为 HTML/CSS 切片
+EXPORT_STATIC=1 pnpm build
+```
 
 ---
 
-## 07. LICENSE
+## 07. ENGINEERING CONTRACT // 工程协作契约
 
-**Sequence.Stack / KBase** 遵循 [MIT License](https://github.com/kerntau/KBase/blob/main/LICENSE)。
-你可以自由使用、修改和分发本项目的源代码，但请务必保留原作者的版权声明信息。
+本仓库定位为严谨的技术实现标本，所有向该代码库发起的 PR (Pull Request) 必须无条件遵守以下硬核纪律：
 
-> SYSTEM ONLINE // EOF
+1. **预编译验证墙**：提交前必须能在本地无警告击穿 `pnpm build` 与 `pnpm lint`。
+2. **原子化提交 (Atomic Commits)**：废弃诸如 `fix bug` 或 `update something` 的劣质描述。严格采用 Angular 标准化前缀，并在 Body 中阐述背景与风险：
+   ```text
+   feat(search): 引入基于 FlexSearch 的按键防抖处理
+   refactor(architecture): 重构目录拓扑并下沉业务逻辑
+   docs(readme): 扩充系统架构拓扑说明矩阵
+   ```
+3. **极简防线**：拒绝一切增加无谓复杂度、非必要的外部 NPM 包引入。如确有必要，必须在 PR 中附带严格的体积损耗与安全审计报告。
+
+---
+
+## 08. ROADMAP // 系统演进路线
+
+- [x] **V1.0 破局**：建立 RSC + Velite 数据编排核心管线。
+- [x] **V1.1 检索**：实装离线构建的内存级 FlexSearch 搜索总线。
+- [x] **V1.2 架构**：完成组件目录原子化拆分与 UI 阻尼动效重构。
+- [ ] **V1.3 拓展**：构建对数学公式 (KaTeX) 及多语言代码高亮 (Shiki) 的深度语法解析。
+- [ ] **V1.4 图谱**：引入知识节点双向链接解析（基于 Obsidian 语法树映射）。
+
+---
+
+## 09. LICENSE
+
+**Sequence.Stack / KBase** 遵循 [MIT License](https://github.com/kerntau/KBase/blob/main/LICENSE) 开源协议。
+你可以自由使用、修改、分发本项目的源代码以及进行商业行为，但必须保留原作者的版权声明信息。
+
+<br>
+<div align="center">
+  <b>SYSTEM ONLINE // END OF FILE</b>
+</div>
