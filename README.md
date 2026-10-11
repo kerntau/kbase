@@ -12,7 +12,6 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16.2.6-000000?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19.2.4-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_4.0-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge&color=000000)](https://github.com/kerntau/KBase/blob/main/LICENSE)
 
 </div>
 
@@ -103,7 +102,7 @@ graph TD
 ## 05. CLONE & QUICK START // 极速装配指南
 
 如果你打算在本地构建该系统的运行时沙箱，请确保终端已具备以下环境：
-- `Node.js >= 18`
+- `Node.js >= 20.9`
 - `pnpm >= 9` （强制要求：禁止使用 npm/yarn 以防破坏幽灵依赖锁定树）
 
 <details open>
@@ -150,7 +149,7 @@ pm2 start npm --name "xstack-core" -- start
 
 ```dockerfile
 # 阶段 1: 构建编译
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
