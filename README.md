@@ -156,7 +156,7 @@ RUN corepack enable pnpm && pnpm install --frozen-lockfile
 RUN pnpm build
 
 # 阶段 2: 生产运行时抽离
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 # 仅提取运行时必需资产
@@ -209,8 +209,7 @@ EXPORT_STATIC=1 pnpm build
 
 ## 09. LICENSE
 
-**Sequence.Stack / KBase** 遵循 [MIT License](https://github.com/kerntau/KBase/blob/main/LICENSE) 开源协议。
-你可以自由使用、修改、分发本项目的源代码以及进行商业行为，但必须保留原作者的版权声明信息。
+仓库当前未附带 LICENSE 文件；如需对外分发，请先补充许可证并同步更新本节。
 
 <br>
 <div align="center">
